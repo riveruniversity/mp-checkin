@@ -6,6 +6,7 @@
 // @match           https://mp.revival.com/*
 // @exclude-match:  *://*.*
 // @inject-into     page
+// @updateURL       https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @require         https://unpkg.com/@zxing/browser@0.1.1/umd/zxing-browser.min.js
 // @require         https://cdn.jsdelivr.net/npm/eruda@2.5.0/eruda.js
 
