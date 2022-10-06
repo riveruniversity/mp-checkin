@@ -72,7 +72,7 @@ function waitingForPageToLoad() {
     //window.con = window.eruda.get('console');
 
 	if (!main) {
-		//window.con.log("⏳ loading page content...");
+		console.log("⏳ loading page content...");
 		window.requestAnimationFrame(waitingForPageToLoad);
 		return;
 	}
@@ -114,7 +114,6 @@ async function startCam() {
 
 	console.log(`Started decode from camera with id ${selectedDeviceId}`);
 	
-	alert('Scanner loaded.')
 	const previewElem = document.querySelector("#qr-video");
 
 	// you can use the controls to stop() the scan or switchTorch() if available
