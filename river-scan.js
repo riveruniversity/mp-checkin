@@ -9,59 +9,22 @@
 // @updateURL       https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @require         https://unpkg.com/@zxing/browser@0.1.1/umd/zxing-browser.min.js
 // @require         https://cdn.jsdelivr.net/npm/eruda@2.5.0/eruda.js
-
 // ==/UserScript==
-
-/*
-(function startScript() {
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://rawgit.com/sitepoint-editors/jsqrcode/master/src/qr_packed.js';
-    document.body.appendChild(script);
-    //var head = document.getElementsByTagName('head')[0];
-    //if (head) head.appendChild(script);
-    //else alert('head not found');
-})()
-*/
-
-/*
-GM.addElement('script', {
-    src: 'https://rawgit.com/sitepoint-editors/jsqrcode/master/src/qr_packed.js',
-    type: 'text/javascript'
-  });
- */
-
-// ? qrcode         ==> object
-// ? window         ==> object
-// ? window.qrcode  ==> undefined
-// ? document       ==> object
-// ? global         ==> undefined
-// ? GM             ==> object
 
 //alert('loading...')
 
+
+// Global Vars
 window.video = null;
 window.observer = null;
-
-
 const codeReader = new ZXingBrowser.BrowserQRCodeReader();
 
-addDevTools();
-
-function addDevTools() {
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://cdn.jsdelivr.net/npm/eruda@2.5.0/eruda.js';
-    window.document.body.appendChild(script);
-	
-	waitingForPageToLoad();
-}
-
+waitingForPageToLoad();
 
 
 function waitingForPageToLoad() {
 	const main = document.querySelector(".viewAreaMain");
-
+	
     if(!window.eruda) {
 		alert("⏳ loading dev tools...");
 	    window.requestAnimationFrame(waitingForPageToLoad);
@@ -69,7 +32,6 @@ function waitingForPageToLoad() {
 	}
 
     // At this point the eruda dev tools are attached to the window var
-    //window.con = window.eruda.get('console');
 
 	if (!main) {
 		console.log("⏳ loading page content...");
@@ -86,26 +48,29 @@ function waitingForPageToLoad() {
 
 
 	console.log("loaded");
-    alert('page loaded')
+    //alert('page loaded')
 	//setTimeout(() => alert("this " + typeof this), 2000);
 
-	addVideoCanvas(main);
+	addVideoCanvas();
     startCam();
 	addObserver();
 }
 
 
+function addVideoCanvas() {
 
-function addVideoCanvas(area) {
 	video = document.createElement("video");
 	video.id = "qr-video";
 	video.controls = false;
 	video.muted = false;
 	video.height = 320; // 👈️ in px
 	video.width = 320; // 👈️ in px
-	video.style.width = '320px';
+	video.style.width = '100%';
 	video.style.height = '320px';
-	area.appendChild(video);
+	video.style.margin = '0 auto';
+
+	const panel = document.querySelector(".search-input-panel");
+	panel.appendChild(video);
 }
 
 
@@ -164,7 +129,6 @@ function handleScanResult (result, error, controls) {
     controls.stop();
     setTimeout(startCam, 1000);
 }
-
 
 
 function searchByScan(id) {
