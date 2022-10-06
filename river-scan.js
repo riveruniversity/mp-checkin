@@ -2,7 +2,7 @@
 // @name            River ID Scanner
 // @namespace       RIDS
 // @description     River Church
-// @version         0.1.0
+// @version         0.0.1
 // @match           https://mp.revival.com/*
 // @exclude-match:  *://*.*
 // @inject-into     page
@@ -86,7 +86,7 @@ function waitingForPageToLoad() {
 
 
 	console.log("loaded");
-    //alert('page loaded')
+    alert('page loaded')
 	//setTimeout(() => alert("this " + typeof this), 2000);
 
 	addVideoCanvas(main);
@@ -101,11 +101,13 @@ function addVideoCanvas(area) {
 	video.id = "qr-video";
 	video.controls = false;
 	video.muted = false;
-	video.height = 240; // 👈️ in px
+	video.height = 320; // 👈️ in px
 	video.width = 320; // 👈️ in px
-
+	video.style.width = '320px';
+	video.style.height = '320px';
 	area.appendChild(video);
 }
+
 
 async function startCam() {
 	const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
@@ -126,6 +128,7 @@ async function startCam() {
 	// stops scanning after 20 seconds
 	//setTimeout(() => controls.stop(), 2000);
 }
+
 
 function addObserver() {
 
@@ -169,12 +172,12 @@ function searchByScan(id) {
 	const searchInput = document.querySelector(".searchInput");
 	const searchButton = document.querySelector(".searchButton"); 
 	
-	document.execCommand('insertText', false, id);
+	// r document.execCommand('insertText', false, id);
 	
-	const ctrl = angular.element(searchInput)
-	console.log(ctrl.scope())
+	//const ctrl = angular.element(searchInput)
+	//console.log(ctrl.scope())
 	
-	//angular.element(searchInput).val(id);
+	angular.element(searchInput).val(id).trigger('input');
 	
 	searchButton.click();
 }
