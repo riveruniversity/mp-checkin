@@ -17,6 +17,8 @@
 // Global Vars
 window.video = null;
 window.observer = null;
+
+var controls = null;
 const codeReader = new ZXingBrowser.BrowserQRCodeReader();
 
 waitingForPageToLoad();
@@ -24,13 +26,13 @@ waitingForPageToLoad();
 
 function waitingForPageToLoad() {
 	const main = document.querySelector(".viewAreaMain");
-	
+	/*
     if(!window.eruda) {
 		alert("⏳ loading dev tools...");
 	    window.requestAnimationFrame(waitingForPageToLoad);
 		return;
 	}
-
+*/
     // At this point the eruda dev tools are attached to the window var
 
 	if (!main) {
@@ -38,6 +40,9 @@ function waitingForPageToLoad() {
 		window.requestAnimationFrame(waitingForPageToLoad);
 		return;
 	}
+	
+	// stop camera in background before starting again
+	if(controls) controls.stop()
 
 
 	//* Page Loaded *//
@@ -47,7 +52,7 @@ function waitingForPageToLoad() {
     if (!searchInput) return;
 
 
-	console.log("loaded");
+	console.log("search page loaded");
     //alert('page loaded')
 	//setTimeout(() => alert("this " + typeof this), 2000);
 
@@ -63,8 +68,8 @@ function addVideoCanvas() {
 	video.id = "qr-video";
 	video.controls = false;
 	video.muted = false;
-	video.height = 320; // 👈️ in px
-	video.width = 320; // 👈️ in px
+	//video.height = 320; // 👈️ in px
+	//video.width = 320; // 👈️ in px
 	video.style.width = '100%';
 	video.style.height = '320px';
 	video.style.margin = '0 auto';
@@ -76,6 +81,9 @@ function addVideoCanvas() {
 
 async function startCam() {
 	const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+	
+	if(!videoInputDevices.length) alert('Please allow Safari to access your camera.')
+	
 
 	const selectedDeviceId = videoInputDevices[1].deviceId;
 
@@ -84,7 +92,8 @@ async function startCam() {
 	const previewElem = document.querySelector("#qr-video");
 
 	// you can use the controls to stop() the scan or switchTorch() if available
-	const controls = await codeReader.decodeFromVideoDevice(
+	//- const controls = await 
+	controls = await codeReader.decodeFromVideoDevice(
 		selectedDeviceId,
 		video,
 		handleScanResult
@@ -118,16 +127,20 @@ function handleScanResult (result, error, controls) {
     // returned from the method.
     
     if(error) return;
+	
+	video.srcObject.getTracks().forEach((track) => {
+
+        track.stop();
+
+    });
     
     console.log(result);
     searchByScan(result.getText());
 
-    video.srcObject.getTracks().forEach((track) => {
-        track.stop();
-    });
+    
 
     controls.stop();
-    setTimeout(startCam, 1000);
+    //setTimeout(startCam, 1000);
 }
 
 
