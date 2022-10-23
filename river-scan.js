@@ -2,7 +2,7 @@
 // @name 			River ID Scanner
 // @namespace 		RIDS
 // @description 	River Church
-// @version 		0.0.2
+// @version 		0.1.0
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @match 			https://mp.revival.com/*
 // @exclude-match: 	*://*.*
@@ -92,16 +92,16 @@ function addVideoCanvas() {
 
 function startCam() {
 	
-	//🚧 if(!videoInputDevices.length) alert('Please allow Safari to access your camera.')
-	//🚧 const selectedDeviceId = videoInputDevices[1].deviceId;
-	//🚧 console.log(`Started decode from camera with id ${selectedDeviceId}`);
-	
 	const videoElem = document.querySelector("#qr-video");
 
   qrScanner = new QrScanner(
 		video,
 		handleScanResult,
-		{ returnDetailedScanResult: true }
+		{ 
+		  returnDetailedScanResult: true, 
+		  highlightScanRegion: true,
+		  highlightCodeOutline: true
+		}
 	);
 
   qrScanner.start();
@@ -127,8 +127,9 @@ function addObserver() {
 
 function handleScanResult (result) {
 	
-	console.log(result)
-  alert(result.data)
+  qrScanner.stop();
+  console.log(result)
+  //alert(result.data)
   
 	/*
 	video.srcObject.getTracks().forEach((track) => {
