@@ -1,39 +1,53 @@
 // ==UserScript==
-// @name            River ID Scanner
-// @namespace       RIDS
-// @description     River Church
-// @version         0.0.1
-// @match           https://mp.revival.com/*
-// @exclude-match:  *://*.*
-// @inject-into     page
-// @updateURL       https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
-// @require         https://unpkg.com/@zxing/browser@0.1.1/umd/zxing-browser.min.js
-// @require         https://cdn.jsdelivr.net/npm/eruda@2.5.0/eruda.js
+// @name 			River ID Scanner
+// @namespace 		RIDS
+// @description 	River Church
+// @version 		0.0.2
+// @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
+// @match 			https://mp.revival.com/*
+// @exclude-match: 	*://*.*
+// @inject-into 	page
+// @grant       none
+
 // ==/UserScript==
 
-//alert('loading...')
+// @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner-worker.min.js
+// @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js
+
+// @require 		https://unpkg.com/jsqr@1.4.0/dist/jsQR.js
+
+
+(function addScript() {	console.log("adding scanner")
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js';
+
+const head = document.querySelector("head");
+
+	if (!head) {
+		console.log("⏳ loading head...");
+		window.requestAnimationFrame(addScript);
+		return;
+	}
+
+  head.appendChild(script);
+  
+	console.log("scanner added")
+
+})()
 
 
 // Global Vars
 window.video = null;
 window.observer = null;
+window.qrScanner = null;
 
-var controls = null;
-const codeReader = new ZXingBrowser.BrowserQRCodeReader();
 
 waitingForPageToLoad();
 
 
 function waitingForPageToLoad() {
 	const main = document.querySelector(".viewAreaMain");
-	/*
-    if(!window.eruda) {
-		alert("⏳ loading dev tools...");
-	    window.requestAnimationFrame(waitingForPageToLoad);
-		return;
-	}
-*/
-    // At this point the eruda dev tools are attached to the window var
 
 	if (!main) {
 		console.log("⏳ loading page content...");
@@ -42,19 +56,16 @@ function waitingForPageToLoad() {
 	}
 	
 	// stop camera in background before starting again
-	if(controls) controls.stop()
-
+	
 
 	//* Page Loaded *//
 
     // Not Search Page
     const searchInput = document.querySelector(".searchInput");
     if (!searchInput) return;
-
-
+    
 	console.log("search page loaded");
-    //alert('page loaded')
-	//setTimeout(() => alert("this " + typeof this), 2000);
+
 
 	addVideoCanvas();
     startCam();
@@ -79,28 +90,21 @@ function addVideoCanvas() {
 }
 
 
-async function startCam() {
-	const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+function startCam() {
 	
-	if(!videoInputDevices.length) alert('Please allow Safari to access your camera.')
+	//🚧 if(!videoInputDevices.length) alert('Please allow Safari to access your camera.')
+	//🚧 const selectedDeviceId = videoInputDevices[1].deviceId;
+	//🚧 console.log(`Started decode from camera with id ${selectedDeviceId}`);
 	
+	const videoElem = document.querySelector("#qr-video");
 
-	const selectedDeviceId = videoInputDevices[1].deviceId;
-
-	console.log(`Started decode from camera with id ${selectedDeviceId}`);
-	
-	const previewElem = document.querySelector("#qr-video");
-
-	// you can use the controls to stop() the scan or switchTorch() if available
-	//- const controls = await 
-	controls = await codeReader.decodeFromVideoDevice(
-		selectedDeviceId,
+  qrScanner = new QrScanner(
 		video,
-		handleScanResult
+		handleScanResult,
+		{ returnDetailedScanResult: true }
 	);
 
-	// stops scanning after 20 seconds
-	//setTimeout(() => controls.stop(), 2000);
+  qrScanner.start();
 }
 
 
@@ -121,26 +125,21 @@ function addObserver() {
 }
 
 
-function handleScanResult (result, error, controls) {
-    // use the result and error values to choose your actions
-    // you can also use controls API in this scope like the controls
-    // returned from the method.
-    
-    if(error) return;
+function handleScanResult (result) {
 	
+	console.log(result)
+  alert(result.data)
+  
+	/*
 	video.srcObject.getTracks().forEach((track) => {
 
         track.stop();
 
     });
-    
-    console.log(result);
-    searchByScan(result.getText());
-
-    
-
-    controls.stop();
-    //setTimeout(startCam, 1000);
+    */
+  
+  qrScanner.stop();
+  searchByScan(result.data);
 }
 
 

@@ -2,79 +2,45 @@
 // @name            River ID Scanner
 // @namespace       RIDS
 // @description     River Church
-// @version         0.1.0
+// @version         0.0.1
 // @match           https://mp.revival.com/*
 // @exclude-match:  *://*.*
 // @inject-into     page
+// @updateURL       https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @require         https://unpkg.com/@zxing/browser@0.1.1/umd/zxing-browser.min.js
 // @require         https://cdn.jsdelivr.net/npm/eruda@2.5.0/eruda.js
-
 // ==/UserScript==
 
-/*
-(function startScript() {
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://rawgit.com/sitepoint-editors/jsqrcode/master/src/qr_packed.js';
-    document.body.appendChild(script);
-    //var head = document.getElementsByTagName('head')[0];
-    //if (head) head.appendChild(script);
-    //else alert('head not found');
-})()
-*/
 
-/*
-GM.addElement('script', {
-    src: 'https://rawgit.com/sitepoint-editors/jsqrcode/master/src/qr_packed.js',
-    type: 'text/javascript'
-  });
- */
-
-// ? qrcode         ==> object
-// ? window         ==> object
-// ? window.qrcode  ==> undefined
-// ? document       ==> object
-// ? global         ==> undefined
-// ? GM             ==> object
-
-//alert('loading...')
-
+// Global Vars
 window.video = null;
 window.observer = null;
 
-
+var controls = null;
 const codeReader = new ZXingBrowser.BrowserQRCodeReader();
 
-addDevTools();
-
-function addDevTools() {
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://cdn.jsdelivr.net/npm/eruda@2.5.0/eruda.js';
-    window.document.body.appendChild(script);
-	
-	waitingForPageToLoad();
-}
-
+waitingForPageToLoad();
 
 
 function waitingForPageToLoad() {
 	const main = document.querySelector(".viewAreaMain");
-
+	/*
     if(!window.eruda) {
 		alert("⏳ loading dev tools...");
 	    window.requestAnimationFrame(waitingForPageToLoad);
 		return;
 	}
-
+*/
     // At this point the eruda dev tools are attached to the window var
-    //window.con = window.eruda.get('console');
 
 	if (!main) {
-		//window.con.log("⏳ loading page content...");
+		console.log("⏳ loading page content...");
 		window.requestAnimationFrame(waitingForPageToLoad);
 		return;
 	}
+	
+	// stop camera in background before starting again
+	if(controls) controls.stop()
 
 
 	//* Page Loaded *//
@@ -84,40 +50,48 @@ function waitingForPageToLoad() {
     if (!searchInput) return;
 
 
-	console.log("loaded");
+	console.log("search page loaded");
     //alert('page loaded')
 	//setTimeout(() => alert("this " + typeof this), 2000);
 
-	addVideoCanvas(main);
+	addVideoCanvas();
     startCam();
 	addObserver();
 }
 
 
+function addVideoCanvas() {
 
-function addVideoCanvas(area) {
 	video = document.createElement("video");
 	video.id = "qr-video";
 	video.controls = false;
 	video.muted = false;
-	video.height = 240; // 👈️ in px
-	video.width = 320; // 👈️ in px
+	//video.height = 320; // 👈️ in px
+	//video.width = 320; // 👈️ in px
+	video.style.width = '100%';
+	video.style.height = '320px';
+	video.style.margin = '0 auto';
 
-	area.appendChild(video);
+	const panel = document.querySelector(".search-input-panel");
+	panel.appendChild(video);
 }
+
 
 async function startCam() {
 	const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+	
+	if(!videoInputDevices.length) alert('Please allow Safari to access your camera.')
+	
 
 	const selectedDeviceId = videoInputDevices[1].deviceId;
 
 	console.log(`Started decode from camera with id ${selectedDeviceId}`);
 	
-	alert('Scanner loaded.')
 	const previewElem = document.querySelector("#qr-video");
 
 	// you can use the controls to stop() the scan or switchTorch() if available
-	const controls = await codeReader.decodeFromVideoDevice(
+	//- const controls = await 
+	controls = await codeReader.decodeFromVideoDevice(
 		selectedDeviceId,
 		video,
 		handleScanResult
@@ -126,6 +100,7 @@ async function startCam() {
 	// stops scanning after 20 seconds
 	//setTimeout(() => controls.stop(), 2000);
 }
+
 
 function addObserver() {
 
@@ -150,18 +125,21 @@ function handleScanResult (result, error, controls) {
     // returned from the method.
     
     if(error) return;
+	
+	video.srcObject.getTracks().forEach((track) => {
+
+        track.stop();
+
+    });
     
     console.log(result);
     searchByScan(result.getText());
 
-    video.srcObject.getTracks().forEach((track) => {
-        track.stop();
-    });
+    
 
     controls.stop();
-    setTimeout(startCam, 1000);
+    //setTimeout(startCam, 1000);
 }
-
 
 
 function searchByScan(id) {
@@ -169,12 +147,12 @@ function searchByScan(id) {
 	const searchInput = document.querySelector(".searchInput");
 	const searchButton = document.querySelector(".searchButton"); 
 	
-	document.execCommand('insertText', false, id);
+	// r document.execCommand('insertText', false, id);
 	
-	const ctrl = angular.element(searchInput)
-	console.log(ctrl.scope())
+	//const ctrl = angular.element(searchInput)
+	//console.log(ctrl.scope())
 	
-	//angular.element(searchInput).val(id);
+	angular.element(searchInput).val(id).trigger('input');
 	
 	searchButton.click();
 }
