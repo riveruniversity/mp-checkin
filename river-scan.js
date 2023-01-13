@@ -2,7 +2,7 @@
 // @name 			River ID Scanner
 // @namespace 		RIDS
 // @description 	River Church
-// @version 		0.1.0
+// @version 		0.1.1
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @match 			https://mp.revival.com/*
 // @exclude-match: 	*://*.*
@@ -17,11 +17,14 @@
 // @require 		https://unpkg.com/jsqr@1.4.0/dist/jsQR.js
 
 
-(function addScript() {	console.log("adding scanner")
+(function addScript() {
+	console.log("adding scanner")
+
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = 'https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js';
-
+
+
 const head = document.querySelector("head");
 
 	if (!head) {
@@ -114,6 +117,10 @@ function addObserver() {
 
     window.observer = new MutationObserver((mutations) => {
 
+		if (mutations.find(({ target }) => target.id === 'scrollableResults')) {
+			insertImages();
+		}
+
 		for (let m of mutations)
 			if (m.target.className == "viewArea" && m.addedNodes.length > 1)
 				waitingForPageToLoad();
@@ -157,4 +164,27 @@ function searchByScan(id) {
 	angular.element(searchInput).val(id).trigger('input');
 	
 	searchButton.click();
+}
+
+async function insertImages() {
+    console.log('insertImages()', { window });
+    const { currentHousehold } = window.angular.element(document.querySelector('div#scrollableResults')).scope().$parent;
+    const { Participants } = currentHousehold;
+    const res = await fetch(`https://mp.revival.com/checkin/api/household/get/${currentHousehold.HouseholdId}?_cb=1673564225607&getOtherAuth=0&localTime=2023-01-12T17:57:05`);
+    const json = await res.json();
+    const { Members } = json;
+    const rowElements = document.querySelectorAll('div.row.participant');
+    console.log({ currentHousehold, Participants, Members });
+    for (const [i, participant] of Object.entries(Participants)) {
+        const rowElement = rowElements[i];
+        const { FileUniqueId } = Members.find(({ ContactId }) => ContactId === participant.ContactId);
+        if (FileUniqueId) {
+            const img = document.createElement('img');
+            img.src = `https://mp.revival.com/ministryplatformapi/files/${FileUniqueId}?$thumbnail=true`;
+            rowElement.style.display = 'flex';
+            rowElement.style.flexDirection = 'row-reverse';
+            rowElement.style.alignItems = 'center';
+            rowElement.appendChild(img);
+        }
+    }
 }
