@@ -17,7 +17,7 @@
 // @require 		https://unpkg.com/jsqr@1.4.0/dist/jsQR.js
 
 
-if (! /checkin/.test(location.hash)) exit();
+if (! /checkin/.test(location.hash)) return;
 
 (function addScript() {
   console.log("adding scanner")
