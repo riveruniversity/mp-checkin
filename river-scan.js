@@ -2,13 +2,12 @@
 // @name 			River ID Scanner
 // @namespace 		RIDS
 // @description 	River Church
-// @version 		0.1.2
+// @version 		0.1.3
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @match 			https://mp.revival.com/*
 // @exclude-match: 	*://*.*
 // @inject-into 	page
 // @grant       none
-
 // ==/UserScript==
 
 // @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner-worker.min.js
@@ -84,14 +83,30 @@ function addVideoCanvas() {
   video.id = "qr-video";
   video.controls = false;
   video.muted = false;
-  //video.height = 320; // 👈️ in px
-  //video.width = 320; // 👈️ in px
+  //video.width  = 100%; //
+  //video.height = 320;  // 👈️ in px
   video.style.width = '100%';
-  video.style.height = '320px';
-  video.style.margin = '0 auto';
+  video.style.height = '100%';
+
+
+  const div = document.createElement('div');
+	div.id = 'qr-wrapper'
+	div.style.width = '40%';
+  div.style.display = 'flex';
+  div.style.flexDirection = 'column';
+  div.style.margin = '0 auto';
+
+	const button = document.createElement('button');
+	button.id = 'flip-cam'
+  button.innerText = 'Flip Camera';
+  button.addEventListener('click', () => flipCamera());
+
+
+	div.appendChild(video);
+	div.appendChild(button);
 
   const panel = document.querySelector(".search-input-panel");
-  panel.appendChild(video);
+	panel.parentElement.appendChild(div);
 }
 
 
@@ -109,7 +124,30 @@ function startCam() {
     }
   );
 
-  qrScanner.start();
+  this.qrScanner.start().then(() => {
+    QrScanner.listCameras(true)
+      .then((list) => localStorage.setItem("cameras", JSON.stringify(list)))
+      .catch((error) => console.log('error', error))
+  });
+}
+
+
+function flipCamera() {
+  const cameraList = JSON.parse(localStorage.getItem("cameras"));
+  const currentCam = localStorage.getItem("currentCam");
+  
+  console.log('currentCam')
+  console.log(currentCam)
+  
+
+  if (currentCam == '0') {
+    qrScanner.setCamera(cameraList[1].id);
+    localStorage.setItem("currentCam", 1)
+  }
+  else {
+    qrScanner.setCamera(cameraList[0].id);
+    localStorage.setItem("currentCam", 0)
+  }
 }
 
 
