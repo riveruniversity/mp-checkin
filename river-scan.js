@@ -120,7 +120,8 @@ function startCam() {
     {
       returnDetailedScanResult: true,
       highlightScanRegion: true,
-      highlightCodeOutline: true
+      highlightCodeOutline: true,
+      preferredCamera: 'user'
     }
   );
 
