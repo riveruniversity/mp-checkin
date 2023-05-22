@@ -2,7 +2,7 @@
 // @name 			River ID Scanner
 // @namespace 		RIDS
 // @description 	River Church
-// @version 		0.1.3
+// @version 		0.1.4
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @match 			https://mp.revival.com/*
 // @exclude-match: 	*://*.*
