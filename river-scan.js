@@ -2,7 +2,7 @@
 // @name 			River ID Scanner
 // @namespace 		RIDS
 // @description 	River Church
-// @version 		0.1.3
+// @version 		0.1.5
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @match 			https://mp.revival.com/*
 // @exclude-match: 	*://*.*
@@ -120,7 +120,8 @@ function startCam() {
     {
       returnDetailedScanResult: true,
       highlightScanRegion: true,
-      highlightCodeOutline: true
+      highlightCodeOutline: true,
+      preferredCamera: 'user'
     }
   );
 
@@ -173,6 +174,11 @@ function addObserver() {
 
 
 function handleScanResult(result) {
+  
+  // camera reads randomly a blank code 
+  if (!result.data) {
+    return;
+  }
 
   qrScanner.stop();
   console.log(result)
