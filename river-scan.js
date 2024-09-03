@@ -2,7 +2,7 @@
 // @name 			River ID Scanner
 // @namespace 		RIDS
 // @description 	River Church
-// @version 		0.1.5
+// @version 		0.1.6
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 // @match 			https://mp.revival.com/*
 // @exclude-match: 	*://*.*
@@ -10,35 +10,20 @@
 // @grant       none
 // ==/UserScript==
 
-// @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner-worker.min.js
+
+
+
+
+
 // @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js
+// @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner-worker.min.js
 
 // @require 		https://unpkg.com/jsqr@1.4.0/dist/jsQR.js
 
 
-if (! /checkin/.test(location.hash)) return;
-
-(function addScript() {
-  console.log("adding scanner")
-
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = 'https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js';
+if (! /checkin/.test(location.hash)) exit //console.log("url not matching");
 
 
-  const head = document.querySelector("head");
-
-  if (!head) {
-    console.log("⏳ loading head...");
-    window.requestAnimationFrame(addScript);
-    return;
-  }
-
-  head.appendChild(script);
-
-  console.log("scanner added")
-
-})()
 
 
 // Global Vars
@@ -47,6 +32,7 @@ window.observer = null;
 window.qrScanner = null;
 
 
+addScript();
 waitingForPageToLoad();
 
 
@@ -233,4 +219,24 @@ async function insertImages() {
       rowElement.appendChild(img);
     }
   }
+}
+
+
+function addScript() {
+
+  console.log("adding scanner")
+
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = 'https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js';
+  const head = document.querySelector("head");
+ 
+  if (!head) {
+ 
+    console.log("⏳ loading head...");
+    return window.requestAnimationFrame(addScript);
+  }
+ 
+  head.appendChild(script);
+  console.log("scanner added");
 }
