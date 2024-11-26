@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name 					Advanced MP Checkin
+// @name 					Advanced Checkin
 // @namespace 		RMI
 // @description 	River Church
 // @version 			0.2.1
@@ -9,12 +9,8 @@
 // ==/UserScript==
 
 
-// @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.js
 
-
-
-
-
+// @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.user.js
 
 // Global Vars
 window.video = null;
@@ -176,11 +172,6 @@ function addScript(url) {
 	script.src = url;
 	const head = document.querySelector('head');
 
-	if (!head) {
-		console.log('⏳ loading head...');
-		return window.requestAnimationFrame(addScript);
-	}
-
 	head.appendChild(script);
 	console.log('scanner added');
 }
@@ -208,8 +199,8 @@ function addResources() {
 
 function modifyResultList() {
 	qrScanner.stop();
-	insertImages();
 	styleParticipants();
+	insertImages();
 }
 
 async function insertImages() {
@@ -243,6 +234,24 @@ async function insertImages() {
 
 
 function styleParticipants() {
+
+	const participantRows = document.querySelectorAll('div.row.participant');
+	participantRows.forEach(row => {
+
+		let recordRow = row.parentElement;
+		recordRow.style.borderRadius = '10px';
+		recordRow.style.overflow = 'hidden';
+		recordRow.style.margin = '15px 5px';
+		recordRow.style.flexGrow = '2';
+
+		let gender = row.firstElementChild.innerText.match(/\(\w\)/)?.at(0);
+		let color = gender == '(M)' ? 'steelblue' : gender == "(F)" ? '#c995d9' : "#e4e6e7";
+		recordRow.style.borderLeft = '5px solid ' + color;
+		row.style.background = '#aaa';
+
+		row.nextElementSibling.style.background = 'aliceblue';
+	});
+
 	const scrollableResults = document.querySelector('#scrollableResults');
 	scrollableResults.style.overflow = 'auto';
 	scrollableResults.style.display = 'flex';
@@ -251,22 +260,8 @@ function styleParticipants() {
 	scrollableResults.style.alignContent = 'flex-start';
 	scrollableResults.style.fontFamily = 'Open Sans';
 
-	const participantRows = document.querySelectorAll('div.row.participant');
-	participantRows.forEach(row => {
-
-		let gender = row.firstElementChild.innerText.match(/\(\w\)/)?.at(0);
-		let color = gender == '(M)' ? 'steelblue' : gender == "(F)" ? '#c995d9' : "#e4e6e7";
-		row.style.borderLeft = '5px solid ' + color;
-		row.style.boxSizing = 'border-box';
-		row.style.background = '#aaa';
-
-		let recordRow = row.parentElement;
-		recordRow.style.borderRadius = '10px';
-		recordRow.style.overflow = 'hidden';
-		recordRow.style.margin = '15px 5px';
-		recordRow.style.flexGrow = '2';
-	});
-
+	let newHeight = scrollableResults.clientHeight + (participantRows.length * 5);
+	scrollableResults.style.height = newHeight + 'px';
 }
 
 // @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js
