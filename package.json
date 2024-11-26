@@ -1,0 +1,9 @@
+{
+	"scripts": {
+		"dev": "http-server -c5 -o /src"
+	},
+	"dependencies": {
+		"install": "^0.13.0",
+		"http-server": "^14.1.1"
+	}
+}
