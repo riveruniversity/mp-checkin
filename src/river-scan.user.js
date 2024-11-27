@@ -50,7 +50,7 @@ function waitingForPageToLoad() {
 	console.log('search page loaded');
 
 	addVideoCanvas();
-	// startCam();
+	startCam();
 	addObserver();
 }
 
@@ -197,7 +197,7 @@ function addResources() {
 
 
 function modifyResultList() {
-	// qrScanner.stop();
+	qrScanner.stop();
 	insertImages()
 		.then(styleParticipants);
 }
@@ -230,7 +230,7 @@ async function insertImages() {
 		rowElement.style.alignItems = 'center';
 		rowElement.style.position = 'relative';
 
-		const ftv = Attributes.find(({ AttributeName }) => AttributeName === 'First Time Visitor');
+		const ftv = Attributes.find(({ AttributeName }) => AttributeName === 'Never Attended');
 		if (ftv) rowElement.classList.add('ftv');
 	}
 }
@@ -241,8 +241,8 @@ function styleParticipants() {
 	const participantRows = document.querySelectorAll('div.row.participant');
 	participantRows.forEach(row => {
 
-		if(row.classList.contains('ftv')) addFtvIcon(row);
-		
+		if (row.classList.contains('ftv')) addFtvIcon(row);
+
 
 		let recordRow = row.parentElement;
 		recordRow.style.borderRadius = '10px';
@@ -274,10 +274,10 @@ function styleParticipants() {
 function addFtvIcon(row) {
 	let div = document.createElement('div');
 	div.style.position = 'absolute';
-	div.style.top ='8px';
-  div.style.right = '8px';
+	div.style.top = '8px';
+	div.style.right = '8px';
 	div.innerHTML = ftv;
-	row.firstElementChild.before(div)
+	row.firstElementChild.after(div);
 }
 
 
@@ -439,4 +439,4 @@ var ftv = `
      id="path1927"
      style="stroke-width:0.0496098" />
 </svg>
-`
+`;
