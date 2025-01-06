@@ -216,7 +216,7 @@ async function insertImages() {
 		const rowElement = rowElements[i];
 		const { FileUniqueId, Attributes } = Members.find(
 			({ ContactId }) => ContactId === participant.ContactId
-		);
+		)|| {};
 
 		const img = document.createElement('img');
 		img.style.height = '115px';
@@ -230,7 +230,7 @@ async function insertImages() {
 		rowElement.style.alignItems = 'center';
 		rowElement.style.position = 'relative';
 
-		const ftv = Attributes.find(({ AttributeName }) => AttributeName === 'Never Attended');
+		const ftv = Attributes && Attributes.find(({ AttributeName }) => AttributeName === 'Never Attended');
 		if (ftv) rowElement.classList.add('ftv');
 	}
 }
