@@ -277,6 +277,7 @@ function addFtvIcon(row) {
 	div.style.top = '8px';
 	div.style.right = '8px';
 	div.innerHTML = ftv;
+  div.parentElement.style.borderLeft = '5px solid ' + 'green';
 	row.firstElementChild.after(div);
 }
 
