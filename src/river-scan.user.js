@@ -4,12 +4,11 @@
 // @description 	River Church
 // @version 			0.2.2
 // @match 				https://mp.revival.com/checkin*
-// @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.user.js
+// @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/src/river-scan.user.js
 // @inject-into 	page
 // ==/UserScript==
 
 
-// @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/river-scan.user.js
 
 // Global Vars
 window.video = null;
