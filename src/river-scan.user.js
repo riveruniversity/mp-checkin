@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name 					Advanced Checkin
+// @name 					Custom Checkin
 // @namespace 		RMI
 // @description 	River Church
 // @version 			0.2.3
@@ -16,268 +16,276 @@ window.observer = null;
 window.qrScanner = null;
 
 if (/checkin/.test(location.hash)) {
-	addResources();
-	waitingForPageToLoad();
+  addResources();
+  waitingForPageToLoad();
 }
 
 function handleMutations(mutations) {
-	if (mutations.find(({ target }) => target.id === 'scrollableResults'))
-		modifyResultList();
+  if (mutations.find(({ target }) => target.id === 'scrollableResults'))
+    modifyResultList();
 
-	if (
-		mutations.find(
-			(m) => m.target.className == 'viewArea' && m.addedNodes.length > 1
-		)
-	)
-		waitingForPageToLoad();
+  if (mutations.find((m) => m.target.className == 'viewArea' && m.addedNodes.length > 1))
+    waitingForPageToLoad();
 }
 
 function waitingForPageToLoad() {
-	const main = document.querySelector('.viewAreaMain');
+  const main = document.querySelector('.viewAreaMain');
 
-	if (!main) {
-		console.log('⏳ loading page content...');
-		window.requestAnimationFrame(waitingForPageToLoad);
-		return;
-	}
+  if (!main) {
+    console.log('⏳ loading page content...');
+    window.requestAnimationFrame(waitingForPageToLoad);
+    return;
+  }
 
-	//* Page Loaded *//
+  //* Page Loaded *//
 
-	// Not Search Page
-	if (!document.querySelector('.searchInput')) return;
+  // Not Search Page
+  if (!document.querySelector('.searchInput')) return;
 
-	console.log('search page loaded');
+  console.log('search page loaded');
 
-	addVideoCanvas();
-	startCam();
-	addObserver();
+  addVideoCanvas();
+  startCam();
+  addObserver();
 }
 
 function addVideoCanvas() {
-	video = document.createElement('video');
-	video.id = 'qr-video';
-	video.controls = false;
-	video.muted = false;
-	//video.width  = 100%; //
-	//video.height = 320;  // 👈️ in px
-	video.style.width = '100%';
-	video.style.height = '100%';
+  video = document.createElement('video');
+  video.id = 'qr-video';
+  video.controls = false;
+  video.muted = false;
+  //video.width  = 100%; //
+  //video.height = 320;  // 👈️ in px
+  video.style.width = '100%';
+  video.style.height = '100%';
 
-	const div = document.createElement('div');
-	div.id = 'qr-wrapper';
-	div.style.width = '40%';
-	div.style.display = 'flex';
-	div.style.flexDirection = 'column';
-	div.style.margin = '0 auto';
+  const div = document.createElement('div');
+  div.id = 'qr-wrapper';
+  div.style.width = '40%';
+  div.style.display = 'flex';
+  div.style.flexDirection = 'column';
+  div.style.margin = '0 auto';
 
-	const button = document.createElement('button');
-	button.id = 'flip-cam';
-	button.innerText = 'Flip Camera';
-	button.addEventListener('click', () => flipCamera());
+  const button = document.createElement('button');
+  button.id = 'flip-cam';
+  button.innerText = 'Flip Camera';
+  button.addEventListener('click', () => flipCamera());
 
-	div.appendChild(video);
-	div.appendChild(button);
+  div.appendChild(video);
+  div.appendChild(button);
 
-	const panel = document.querySelector('.search-input-panel');
-	panel.parentElement.appendChild(div);
+  const panel = document.querySelector('.search-input-panel');
+  panel.parentElement.appendChild(div);
 }
 
 function startCam() {
-	const videoElem = document.querySelector('#qr-video');
+  const videoElem = document.querySelector('#qr-video');
 
-	qrScanner = new QrScanner(video, handleScanResult, {
-		returnDetailedScanResult: true,
-		highlightScanRegion: true,
-		highlightCodeOutline: true,
-		preferredCamera: 'user',
-	});
+  qrScanner = new QrScanner(video, handleScanResult, {
+    returnDetailedScanResult: true,
+    highlightScanRegion: true,
+    highlightCodeOutline: true,
+    preferredCamera: 'user',
+  });
 
-	qrScanner.start().then(() => {
-		QrScanner.listCameras(true)
-			.then((list) => localStorage.setItem('cameras', JSON.stringify(list)))
-			.catch((error) => console.log('error', error));
-	});
+  qrScanner.start().then(() => {
+    QrScanner.listCameras(true)
+      .then((list) => localStorage.setItem('cameras', JSON.stringify(list)))
+      .catch((error) => console.log('error', error));
+  });
 }
 
 function flipCamera() {
-	const cameraList = JSON.parse(localStorage.getItem('cameras'));
-	const currentCam = localStorage.getItem('currentCam');
+  const cameraList = JSON.parse(localStorage.getItem('cameras'));
+  const currentCam = localStorage.getItem('currentCam');
 
-	console.log('currentCam');
-	console.log(currentCam);
+  console.log('currentCam');
+  console.log(currentCam);
 
-	if (currentCam == '0') {
-		qrScanner.setCamera(cameraList[1].id);
-		localStorage.setItem('currentCam', 1);
-	} else {
-		qrScanner.setCamera(cameraList[0].id);
-		localStorage.setItem('currentCam', 0);
-	}
+  if (currentCam == '0') {
+    qrScanner.setCamera(cameraList[1].id);
+    localStorage.setItem('currentCam', 1);
+  } else {
+    qrScanner.setCamera(cameraList[0].id);
+    localStorage.setItem('currentCam', 0);
+  }
 }
 
 function addObserver() {
-	if (window.observer) return;
+  if (window.observer) return;
 
-	window.observer = new MutationObserver(handleMutations);
+  window.observer = new MutationObserver(handleMutations);
 
-	const config = { childList: true, subtree: true };
-	const obj = document.querySelector('body');
-	window.observer.observe(obj, config);
+  const config = { childList: true, subtree: true };
+  const obj = document.querySelector('body');
+  window.observer.observe(obj, config);
 }
 
 function handleScanResult(result) {
-	// camera reads randomly a blank code
-	if (!result.data) {
-		return;
-	}
+  // camera reads randomly a blank code
+  if (!result.data) {
+    return;
+  }
 
-	console.log(result);
-	//alert(result.data)
+  console.log(result);
+  //alert(result.data)
 
-	/*
-	video.srcObject.getTracks().forEach((track) => {
+  /*
+  video.srcObject.getTracks().forEach((track) => {
 
-				track.stop();
+        track.stop();
 
-		});
-		*/
+    });
+    */
 
-	qrScanner.stop();
-	searchByScan(result.data);
+  qrScanner.stop();
+  searchByScan(result.data);
 }
 
 function searchByScan(id) {
-	const searchInput = document.querySelector('.searchInput');
-	const searchButton = document.querySelector('.searchButton');
+  const searchInput = document.querySelector('.searchInput');
+  const searchButton = document.querySelector('.searchButton');
 
-	// r document.execCommand('insertText', false, id);
+  // r document.execCommand('insertText', false, id);
 
-	//const ctrl = angular.element(searchInput)
-	//console.log(ctrl.scope())
+  //const ctrl = angular.element(searchInput)
+  //console.log(ctrl.scope())
 
-	angular.element(searchInput).val(id).trigger('input');
-	searchButton.click();
+  angular.element(searchInput).val(id).trigger('input');
+  searchButton.click();
 }
 
 
 
 function addScript(url) {
-	console.log('adding scanner');
+  console.log('adding scanner');
 
-	const script = document.createElement('script');
-	// script.type = 'text/javascript';
-	script.type = 'module';
-	script.src = url;
-	const head = document.querySelector('head');
+  const script = document.createElement('script');
+  // script.type = 'text/javascript';
+  script.type = 'module';
+  script.src = url;
+  const head = document.querySelector('head');
 
-	head.appendChild(script);
-	console.log('scanner added');
+  head.appendChild(script);
+  console.log('scanner added');
 }
 
 
 function addCss(href, rel = 'stylesheet', crossorigin = false) {
 
-	const link = document.createElement('link');
-	link.rel = rel;
-	link.href = href;
-	if (crossorigin) link.crossOrigin = true;
+  const link = document.createElement('link');
+  link.rel = rel;
+  link.href = href;
+  if (crossorigin) link.crossOrigin = true;
 
-	document.querySelector('head').appendChild(link);
+  document.querySelector('head').appendChild(link);
 }
 
 
 function addResources() {
-	addScript('https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js');
-	addCss("https://fonts.googleapis.com", "preconnect");
-	addCss("https://fonts.gstatic.com", "preconnect", true);
-	addCss("https://fonts.googleapis.com/css2?family=Open+Sans&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap", "stylesheet");
+  addScript('https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js');
+  addCss("https://fonts.googleapis.com", "preconnect");
+  addCss("https://fonts.gstatic.com", "preconnect", true);
+  addCss("https://fonts.googleapis.com/css2?family=Open+Sans&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap", "stylesheet");
 }
 
 
 
 function modifyResultList() {
-	qrScanner.stop();
-	insertImages()
-		.then(styleParticipants);
+  qrScanner.stop();
+  removeScrollButtons();
+  insertImages()
+    .then(styleParticipants);
 }
 
 async function insertImages() {
-	const { currentHousehold } = window.angular.element(document.querySelector('div#scrollableResults')).scope().$parent;
-	const { Participants } = currentHousehold;
-	const res = await fetch(
-		`https://mp.revival.com/checkin/api/household/get/${currentHousehold.HouseholdId}?_cb=${Date.now()}&getOtherAuth=0&localTime=${new Date().toISOString().split('.')[0]}` //2023-01-12T17:57:05
-	);
-	const json = await res.json();
-	const { Members } = json;
-	const rowElements = document.querySelectorAll('div.row.participant');
+  const { currentHousehold } = window.angular.element(document.querySelector('div#scrollableResults')).scope().$parent;
+  const { Participants } = currentHousehold;
+  const res = await fetch(
+    `https://mp.revival.com/checkin/api/household/get/${currentHousehold.HouseholdId}?_cb=${Date.now()}&getOtherAuth=0&localTime=${new Date().toISOString().split('.')[0]}` //2023-01-12T17:57:05
+  );
+  const json = await res.json();
+  const { Members } = json;
+  const rowElements = document.querySelectorAll('div.row.participant');
 
-	for (const [i, participant] of Object.entries(Participants)) {
-		const rowElement = rowElements[i];
-		const { FileUniqueId, Attributes } = Members.find(
-			({ ContactId }) => ContactId === participant.ContactId
-		)|| {};
+  for (const [i, participant] of Object.entries(Participants)) {
+    const rowElement = rowElements[i];
+    const { FileUniqueId, Attributes } = Members.find(
+      ({ ContactId }) => ContactId === participant.ContactId
+    ) || {};
 
-		const img = document.createElement('img');
-		img.style.height = '115px';
-		if (FileUniqueId)
-			img.src = `https://mp.revival.com/ministryplatformapi/files/${FileUniqueId}?$thumbnail=true`;
-		else
-			img.src = blankImage;
-		rowElement.appendChild(img);
-		rowElement.style.display = 'flex';
-		rowElement.style.flexDirection = 'row-reverse';
-		rowElement.style.alignItems = 'center';
-		rowElement.style.position = 'relative';
+    const img = document.createElement('img');
+    img.style.height = '115px';
+    if (FileUniqueId)
+      img.src = `https://mp.revival.com/ministryplatformapi/files/${FileUniqueId}?$thumbnail=true`;
+    else
+      img.src = blankImage;
+    rowElement.appendChild(img);
+    rowElement.style.display = 'flex';
+    rowElement.style.flexDirection = 'row-reverse';
+    rowElement.style.alignItems = 'center';
+    rowElement.style.position = 'relative';
 
-		const ftv = Attributes && Attributes.find(({ AttributeName }) => AttributeName === 'Never Attended');
-		if (ftv) rowElement.classList.add('ftv');
-	}
+    const ftv = Attributes && Attributes.find(({ AttributeName }) => AttributeName === 'Never Attended');
+    if (ftv) rowElement.classList.add('ftv');
+  }
 }
 
 
 function styleParticipants() {
 
-	const participantRows = document.querySelectorAll('div.row.participant');
-	participantRows.forEach(row => {
+  const participantRows = document.querySelectorAll('div.row.participant');
+  participantRows.forEach(row => {
 
-		if (row.classList.contains('ftv')) addFtvIcon(row);
+    if (row.classList.contains('ftv')) addFtvIcon(row);
 
 
-		let recordRow = row.parentElement;
-		recordRow.style.borderRadius = '10px';
-		recordRow.style.overflow = 'hidden';
-		recordRow.style.margin = '15px 5px';
-		recordRow.style.flexGrow = '2';
+    let recordRow = row.parentElement;
+    recordRow.style.borderRadius = '10px';
+    recordRow.style.overflow = 'hidden';
+    recordRow.style.margin = '15px 5px';
+    recordRow.style.flexGrow = '2';
 
-		let gender = row.firstElementChild.innerText.match(/\(\w\)/)?.at(0);
-		let color = gender == '(M)' ? 'steelblue' : gender == "(F)" ? '#c995d9' : "#e4e6e7";
-		recordRow.style.borderLeft = '5px solid ' + color;
-		row.style.background = '#aaa';
+    let gender = row.firstElementChild.innerText.match(/\(\w\)/)?.at(0);
+    let color = gender == '(M)' ? 'steelblue' : gender == "(F)" ? '#c995d9' : "#e4e6e7";
+    recordRow.style.borderLeft = '5px solid ' + color;
+    row.style.background = '#aaa';
 
-		row.nextElementSibling.style.background = 'aliceblue';
-	});
+    row.nextElementSibling.style.background = 'aliceblue';
+  });
 
-	const scrollableResults = document.querySelector('#scrollableResults');
-	scrollableResults.style.overflow = 'auto';
-	scrollableResults.style.display = 'flex';
-	scrollableResults.style.flexWrap = 'wrap';
-	scrollableResults.style.overflow = 'auto';
-	scrollableResults.style.alignContent = 'flex-start';
-	scrollableResults.style.fontFamily = 'Open Sans';
+  const scrollableResults = document.querySelector('#scrollableResults');
+  scrollableResults.style.overflow = 'auto';
+  scrollableResults.style.display = 'flex';
+  scrollableResults.style.flexWrap = 'wrap';
+  scrollableResults.style.overflow = 'auto';
+  scrollableResults.style.alignContent = 'flex-start';
+  scrollableResults.style.fontFamily = 'Open Sans';
 
-	let newHeight = scrollableResults.clientHeight + (participantRows.length * 5);
-	scrollableResults.style.height = newHeight + 'px';
+  let newHeight = scrollableResults.clientHeight + (participantRows.length * 5);
+  scrollableResults.style.height = newHeight + 'px';
 }
 
 
 function addFtvIcon(row) {
-	let div = document.createElement('div');
-	div.style.position = 'absolute';
-	div.style.top = '8px';
-	div.style.right = '8px';
-	div.innerHTML = ftv;
+  let div = document.createElement('div');
+  div.style.position = 'absolute';
+  div.style.top = '8px';
+  div.style.right = '8px';
+  div.innerHTML = ftv;
   row.parentElement.style.borderLeft = '5px solid ' + 'green';
-	row.firstElementChild.after(div);
+  row.firstElementChild.after(div);
+}
+
+function removeScrollButtons() {
+  const resultContainer = document.querySelector('.checkin-results-container');
+  resultContainer && (resultContainer.firstElementChild.style.width = '100%');
+
+  const buttonsBar = resultContainer.querySelector('.scroll-buttons');
+  buttonsBar?.remove();
+
+  const prevNextContainer = document.querySelector('.prev-next-container');
+  prevNextContainer && (prevNextContainer.firstElementChild.style.width = '100%');
 }
 
 
