@@ -2,7 +2,7 @@
 // @name 					Advanced Checkin
 // @namespace 		RMI
 // @description 	River Church
-// @version 			0.2.2
+// @version 			0.2.3
 // @match 				https://mp.revival.com/checkin*
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/src/river-scan.user.js
 // @inject-into 	page
