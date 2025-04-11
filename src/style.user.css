@@ -1,0 +1,29 @@
+// ==UserScript==
+// @name 			    Custom Checkin CSS
+// @namespace 		RMI
+// @description 	Custom Checkin Style
+// @version 		  0.0.1
+// @match 				https://mp.revival.com/checkin*
+// @exclude-match: 	*://*.*
+// @inject-into 	page
+// ==/UserScript==
+
+
+/**/
+:root {
+  --white: #fff;
+  --yellow: #ffdd57;
+  --ru-yellow: #d6a329;
+  --ru-blue: #0f3952;
+  --ru-grey: #9d9d9d;
+  --ru-gold: #dba409;
+  --light-grey: #e2e2e2;
+  --lighter-grey: #f7f6f4;
+  --medium-grey: #cacaca;
+  --darker-grey: #999;
+  --dark-grey: #3f3f3f;
+  --warn: #ffc107;
+  --flagged: #d29602;
+  --error: #e15757;
+  --error-strong: #dc3545;
+}

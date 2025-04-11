@@ -2,7 +2,7 @@
 // @name 					Custom Checkin
 // @namespace 		RMI
 // @description 	River Church
-// @version 			0.2.3
+// @version 			0.2.4
 // @match 				https://mp.revival.com/checkin*
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/src/river-scan.user.js
 // @inject-into 	page
@@ -14,10 +14,10 @@
 window.video = null;
 window.observer = null;
 window.qrScanner = null;
+window.width = window.screen.width <= 420 ? '100%' : window.screen.width <= 920 ? '80%' : '50%';
 
 if (/checkin/.test(location.hash)) {
-  addResources();
-  waitingForPageToLoad();
+  addResources().then(waitingForPageToLoad);
 }
 
 function handleMutations(mutations) {
@@ -44,9 +44,50 @@ function waitingForPageToLoad() {
 
   console.log('search page loaded');
 
+
   addVideoCanvas();
-  startCam();
   addObserver();
+  startCam();
+  addStyle();
+}
+
+
+function addStyle() {
+  const pageArea = document.querySelector('.pageArea');
+  pageArea.style.textAlign = 'center';
+
+  const title = pageArea.querySelector('.primary-text.ng-binding');
+  // title.innerText = title.innerText.replace('\:', '');
+
+  const els = document.querySelectorAll('body, .checkin');
+  els.forEach(el => el.style.fontFamily = 'Overpass');
+
+  const searchPanel = document.querySelector('.row.search-input-panel');
+  searchPanel.style.width = window.width;
+  searchPanel.style.maxWidth = '1360px';
+  searchPanel.style.marginTop = '50px';
+  searchPanel.style.display = 'flex';
+  searchPanel.style.gap = '3px';
+  searchPanel.style.justifyContent = 'space-between';
+
+  const searchWrapper = searchPanel.firstElementChild;
+  searchWrapper.style.width = '100%';
+  searchWrapper.style.marginLeft = '0';
+  searchWrapper.classList.remove('offset-l2', 'offset-m1');
+
+  const searchButton = document.querySelector('.searchButton');
+  searchButton.style.width = '120px';
+  searchButton.parentElement.style.width = '120px';
+  // searchButton.style.padding = '5px 10px';
+  // searchButton.lastElementChild.remove();
+  // searchButton.classList.remove('btn-flex');
+  // searchButton.parentElement.classList.remove('m3', 'col');
+
+  const searchIcon = searchButton.querySelector('.fa-search');
+  searchIcon.margin = '0';
+
+  const manyElements = document.querySelectorAll('div, input, button, video');
+  manyElements.forEach(div => div.style.borderRadius = '5px');
 }
 
 function addVideoCanvas() {
@@ -61,7 +102,8 @@ function addVideoCanvas() {
 
   const div = document.createElement('div');
   div.id = 'qr-wrapper';
-  div.style.width = '40%';
+  div.style.width = window.width;
+  div.style.maxWidth = '1360px';
   div.style.display = 'flex';
   div.style.flexDirection = 'column';
   div.style.margin = '0 auto';
@@ -182,11 +224,12 @@ function addCss(href, rel = 'stylesheet', crossorigin = false) {
 }
 
 
-function addResources() {
+async function addResources() {
   addScript('https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js');
   addCss("https://fonts.googleapis.com", "preconnect");
   addCss("https://fonts.gstatic.com", "preconnect", true);
-  addCss("https://fonts.googleapis.com/css2?family=Open+Sans&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap", "stylesheet");
+  addCss("https://fonts.googleapis.com/css2?family=Open+Sans&family=Overpass&display=swap", "stylesheet");
+  await sleep(300);
 }
 
 
@@ -220,6 +263,7 @@ async function insertImages() {
       img.src = `https://mp.revival.com/ministryplatformapi/files/${FileUniqueId}?$thumbnail=true`;
     else
       img.src = blankImage;
+
     rowElement.appendChild(img);
     rowElement.style.display = 'flex';
     rowElement.style.flexDirection = 'row-reverse';
@@ -277,6 +321,7 @@ function addFtvIcon(row) {
   row.firstElementChild.after(div);
 }
 
+
 function removeScrollButtons() {
   const resultContainer = document.querySelector('.checkin-results-container');
   resultContainer && (resultContainer.firstElementChild.style.width = '100%');
@@ -287,6 +332,12 @@ function removeScrollButtons() {
   const prevNextContainer = document.querySelector('.prev-next-container');
   prevNextContainer && (prevNextContainer.firstElementChild.style.width = '100%');
 }
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 
 // @require 		https://unpkg.com/qr-scanner@1.4.1/qr-scanner.umd.min.js
