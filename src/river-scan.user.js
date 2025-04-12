@@ -86,9 +86,9 @@ function addStyle() {
   const searchIcon = searchButton.querySelector('.fa-search');
   searchIcon.margin = '0';
 
-  const manyElements = document.querySelectorAll('div, input, button, video');
-  manyElements.forEach(div => div.style.borderRadius = '5px');
+  roundEdges();
 }
+
 
 function addVideoCanvas() {
   video = document.createElement('video');
@@ -133,6 +133,7 @@ function startCam() {
   qrScanner.start().then(() => {
     QrScanner.listCameras(true)
       .then((list) => localStorage.setItem('cameras', JSON.stringify(list)))
+      .then(() => flipCamera())
       .catch((error) => console.log('error', error));
   });
 }
@@ -141,8 +142,7 @@ function flipCamera() {
   const cameraList = JSON.parse(localStorage.getItem('cameras'));
   const currentCam = localStorage.getItem('currentCam');
 
-  console.log('currentCam');
-  console.log(currentCam);
+  console.log('currentCam', currentCam);
 
   if (currentCam == '0') {
     qrScanner.setCamera(cameraList[1].id);
@@ -239,6 +239,7 @@ function modifyResultList() {
   removeScrollButtons();
   insertImages()
     .then(styleParticipants);
+  roundEdges();
 }
 
 async function insertImages() {
@@ -331,6 +332,11 @@ function removeScrollButtons() {
 
   const prevNextContainer = document.querySelector('.prev-next-container');
   prevNextContainer && (prevNextContainer.firstElementChild.style.width = '100%');
+}
+
+function roundEdges() {
+  const manyElements = document.querySelectorAll('div, input, button, video');
+  manyElements.forEach(div => div.style.borderRadius = '5px');
 }
 
 
