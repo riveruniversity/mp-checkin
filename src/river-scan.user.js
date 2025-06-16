@@ -2,7 +2,7 @@
 // @name 					Custom Checkin
 // @namespace 		RMI
 // @description 	River Church
-// @version 			0.2.4
+// @version 			0.2.5
 // @match 				https://mp.revival.com/checkin*
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/src/river-scan.user.js
 // @inject-into 	page
@@ -14,7 +14,8 @@
 window.video = null;
 window.observer = null;
 window.qrScanner = null;
-window.width = window.screen.width <= 420 ? '100%' : window.screen.width <= 920 ? '80%' : '50%';
+window.width = window.screen.width <= 420 ? '80%' : window.screen.width <= 920 ? '70%' : '50%';
+window.width = '40%';
 
 if (/checkin/.test(location.hash)) {
   addResources().then(waitingForPageToLoad);
@@ -87,8 +88,17 @@ function addStyle() {
   searchIcon.margin = '0';
 
   roundEdges();
-}
 
+
+  const viewAreaFooter = document.querySelector('.viewAreaFooter');
+  const footer = viewAreaFooter.firstElementChild;
+  footer.style.width = window.width;
+  footer.style.maxWidth = '1360px';
+  footer.style.display = 'flex';
+  footer.style.gap = '3px';
+  [...footer.children].forEach(child => (child.style.width = (100 / footer.children.length + '%')))
+
+}
 
 function addVideoCanvas() {
   video = document.createElement('video');
@@ -133,7 +143,6 @@ function startCam() {
   qrScanner.start().then(() => {
     QrScanner.listCameras(true)
       .then((list) => localStorage.setItem('cameras', JSON.stringify(list)))
-      .then(() => flipCamera())
       .catch((error) => console.log('error', error));
   });
 }
@@ -239,7 +248,6 @@ function modifyResultList() {
   removeScrollButtons();
   insertImages()
     .then(styleParticipants);
-  roundEdges();
 }
 
 async function insertImages() {
