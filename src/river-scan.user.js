@@ -14,8 +14,11 @@
 window.video = null;
 window.observer = null;
 window.qrScanner = null;
-window.width = window.screen.width <= 420 ? '80%' : window.screen.width <= 920 ? '70%' : '50%';
-window.width = '40%';
+window.orientation = getScreenOrientation();
+// window.containerWidth = window.screen.width <= 420 ? '80%' : window.screen.width <= 920 ? '70%' : '50%';
+window.containerWidth = window.orientation === 'landscape' ? '40%' : '80%';
+
+console.log(window.orientation);
 
 if (/checkin/.test(location.hash)) {
   addResources().then(waitingForPageToLoad);
@@ -64,9 +67,10 @@ function addStyle() {
   els.forEach(el => el.style.fontFamily = 'Overpass');
 
   const searchPanel = document.querySelector('.row.search-input-panel');
-  searchPanel.style.width = window.width;
+  searchPanel.style.width = window.containerWidth;
   searchPanel.style.maxWidth = '1360px';
-  searchPanel.style.marginTop = '50px';
+  searchPanel.style.marginTop = '20px';
+  searchPanel.style.marginBottom = '10px';
   searchPanel.style.display = 'flex';
   searchPanel.style.gap = '3px';
   searchPanel.style.justifyContent = 'space-between';
@@ -75,6 +79,9 @@ function addStyle() {
   searchWrapper.style.width = '100%';
   searchWrapper.style.marginLeft = '0';
   searchWrapper.classList.remove('offset-l2', 'offset-m1');
+
+  const searchInput = searchWrapper.firstElementChild;
+  searchInput.style.marginBottom = '0';
 
   const searchButton = document.querySelector('.searchButton');
   searchButton.style.width = '120px';
@@ -92,11 +99,12 @@ function addStyle() {
 
   const viewAreaFooter = document.querySelector('.viewAreaFooter');
   const footer = viewAreaFooter.firstElementChild;
-  footer.style.width = window.width;
+  footer.style.width = window.containerWidth;
   footer.style.maxWidth = '1360px';
   footer.style.display = 'flex';
+  footer.style.justifyContent = 'space-evenly';
   footer.style.gap = '3px';
-  [...footer.children].forEach(child => (child.style.width = (100 / footer.children.length + '%')))
+  [...footer.children].forEach(child => (child.style.width = (100 / footer.children.length + '%')));
 
 }
 
@@ -112,7 +120,7 @@ function addVideoCanvas() {
 
   const div = document.createElement('div');
   div.id = 'qr-wrapper';
-  div.style.width = window.width;
+  div.style.width = window.containerWidth;
   div.style.maxWidth = '1360px';
   div.style.display = 'flex';
   div.style.flexDirection = 'column';
@@ -121,6 +129,9 @@ function addVideoCanvas() {
   const button = document.createElement('button');
   button.id = 'flip-cam';
   button.innerText = 'Flip Camera';
+  button.style.padding = '10px';
+  button.style.marginTop = '10px';
+  button.style.border = '0';
   button.addEventListener('click', () => flipCamera());
 
   div.appendChild(video);
@@ -345,6 +356,17 @@ function removeScrollButtons() {
 function roundEdges() {
   const manyElements = document.querySelectorAll('div, input, button, video');
   manyElements.forEach(div => div.style.borderRadius = '5px');
+}
+
+function getScreenOrientation() {
+  if (window.screen.orientation) {
+    // Use Screen Orientation API if available
+    const type = window.screen.orientation.type;
+    return type.includes('portrait') ? 'portrait' : 'landscape';
+  } else {
+    // Fallback to window dimensions
+    return window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+  }
 }
 
 
