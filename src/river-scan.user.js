@@ -16,7 +16,7 @@ window.observer = null;
 window.qrScanner = null;
 window.orientation = getScreenOrientation();
 // window.containerWidth = window.screen.width <= 420 ? '80%' : window.screen.width <= 920 ? '70%' : '50%';
-window.containerWidth = window.orientation === 'landscape' ? '40%' : '80%';
+window.containerWidth = window.orientation === 'landscape' || window.screen.width <= 420 ? '40%' : '80%';
 
 console.log(window.orientation);
 
