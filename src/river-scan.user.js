@@ -2,7 +2,7 @@
 // @name 					Custom Checkin
 // @namespace 		RMI
 // @description 	River Church
-// @version 			0.2.5
+// @version 			0.2.6
 // @match 				https://mp.revival.com/checkin*
 // @updateURL 		https://raw.githubusercontent.com/riveruniversity/mp-qrscanner/main/src/river-scan.user.js
 // @inject-into 	page
@@ -142,35 +142,60 @@ function addVideoCanvas() {
 }
 
 function startCam() {
-  const videoElem = document.querySelector('#qr-video');
+  const deviceId = localStorage.getItem('currentCamId') || 'environment';
 
   qrScanner = new QrScanner(video, handleScanResult, {
     returnDetailedScanResult: true,
     highlightScanRegion: true,
     highlightCodeOutline: true,
-    preferredCamera: 'user',
+    preferredCamera: deviceId,
   });
 
-  qrScanner.start().then(() => {
-    QrScanner.listCameras(true)
-      .then((list) => localStorage.setItem('cameras', JSON.stringify(list)))
-      .catch((error) => console.log('error', error));
-  });
+  qrScanner.start()
+    .then(() => QrScanner.listCameras(true))
+    .then(list => localStorage.setItem('cameras', JSON.stringify(list)))
+    .then(() => updateCurrentCamInfo())
+    .catch(err => console.warn('Failed to start scanner or list cameras:', err));
+}
+
+
+function updateCurrentCamInfo() {
+  const cameraList = JSON.parse(localStorage.getItem('cameras')) || [];
+
+  const stream = qrScanner.$video.srcObject;
+  if (!stream) {
+    console.warn('Scanner not started yet');
+    return;
+  }
+
+  const [track] = stream.getVideoTracks();
+  const { deviceId, facingMode } = track.getSettings();
+  localStorage.setItem('currentCamId', deviceId);
+
+  const idx = cameraList.findIndex(c => c.deviceId === deviceId || c.id === deviceId);
+  if (idx !== -1) {
+    localStorage.setItem('currentCamIndex', idx);
+  } else {
+    console.warn('Active camera not in saved list');
+  }
 }
 
 function flipCamera() {
-  const cameraList = JSON.parse(localStorage.getItem('cameras'));
-  const currentCam = localStorage.getItem('currentCam');
+  const cameraList = JSON.parse(localStorage.getItem('cameras')) || [];
+  const currentCamId = localStorage.getItem('currentCamId');
+  // const currentCamIndex = localStorage.getItem('currentCamIndex');
 
-  console.log('currentCam', currentCam);
-
-  if (currentCam == '0') {
-    qrScanner.setCamera(cameraList[1].id);
-    localStorage.setItem('currentCam', 1);
-  } else {
-    qrScanner.setCamera(cameraList[0].id);
-    localStorage.setItem('currentCam', 0);
+  if (cameraList.length < 2) {
+    return console.warn('No cameras to flip');
   }
+
+  const currentCamIndex = cameraList.findIndex(cam => cam.id == currentCamId);
+  const nextCamIndex = cameraList[currentCamIndex + 1] ? currentCamIndex + 1 : 0;
+  const nextCam = cameraList[nextCamIndex];
+
+  qrScanner.setCamera(nextCam.id);
+  localStorage.setItem('currentCamIndex', nextCamIndex);
+  localStorage.setItem('currentCamId', nextCam.id);
 }
 
 function addObserver() {
