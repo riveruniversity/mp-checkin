@@ -1,11 +1,16 @@
 // ==UserScript==
-// @name 			    Custom Checkin CSS
-// @namespace 		RMI
-// @description 	Custom Checkin Style
-// @version 		  0.0.1
-// @match 				https://mp.revival.com/checkin*
-// @exclude-match: 	*://*.*
+// @name					Checkin Style CSS
+// @namespace			revival.com
+// @version				0.2.6
+// @description		MP Checkin Suite extension
+// @author				River Church
+// @match					https://mp.revival.com/checkin*
+// @icon					https://mp.revival.com/checkin/content/images/app-logo.png
+// @updateURL			https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/style.user.css
+// @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/style.user.css
 // @inject-into 	page
+
+// @grant 				none
 // ==/UserScript==
 
 
