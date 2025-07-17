@@ -13,6 +13,12 @@
 // @grant 				none
 // ==/UserScript==
 
+// @inject-into 	page
+
+
+console.log('🖼️ loading scan module ...');
+
+
 
 /* eslint-disable no-undef */
 
@@ -20,9 +26,7 @@
 window.video = null;
 window.scanObserver = null;
 window.qrScanner = null;
-window.orientation = getScreenOrientation();
-// window.containerWidth = window.screen.width <= 420 ? '80%' : window.screen.width <= 920 ? '70%' : '50%';
-window.containerWidth = window.orientation === 'landscape' || window.screen.width <= 420 ? '40%' : '80%';
+window.orient = getScreenOrientation();
 
 
 if (/checkin/.test(location.hash)) {
@@ -43,7 +47,7 @@ function waitingForPageToLoad() {
   const main = document.querySelector('.viewAreaMain');
 
   if (!main) {
-    console.log('🖼️ loading page content...');
+    console.log('⏳ loading page content...');
     window.requestAnimationFrame(waitingForPageToLoad);
     return;
   }
@@ -67,15 +71,24 @@ function addVideoCanvas() {
   window.video.id = 'qr-video';
   window.video.controls = false;
   window.video.muted = false;
-  //video.width  = 100%; //
-  //video.height = 320;  // 👈️ in px
   window.video.style.width = '100%';
   window.video.style.height = '100%';
+  window.video.style.objectFit = 'cover';
+  window.video.style.objectPosition = 'center';
 
+  // Square video container (only contains the video)
+  const videoContainer = document.createElement('div');
+  videoContainer.id = 'video-container';
+  videoContainer.style.width = '100%';
+  videoContainer.style.aspectRatio = '1 / 1';
+  videoContainer.style.overflow = 'hidden';
+  videoContainer.style.position = 'relative';
+
+  // Main wrapper div (contains video container + button)
   const div = document.createElement('div');
   div.id = 'qr-wrapper';
   div.style.width = window.containerWidth;
-  div.style.maxWidth = '1360px';
+  div.style.maxWidth = (window.screen.height * 0.6) + 'px';
   div.style.display = 'flex';
   div.style.flexDirection = 'column';
   div.style.margin = '0 auto';
@@ -88,12 +101,16 @@ function addVideoCanvas() {
   button.style.border = '0';
   button.addEventListener('click', () => flipCamera());
 
-  div.appendChild(window.video);
+  // Proper nesting: video goes in videoContainer, both go in main wrapper
+  videoContainer.appendChild(window.video);
+  div.appendChild(videoContainer);
   div.appendChild(button);
 
   const panel = document.querySelector('.search-input-panel');
   panel.parentElement.appendChild(div);
 }
+
+
 
 function startCam() {
   const deviceId = localStorage.getItem('currentCamId') || 'environment';
@@ -233,14 +250,22 @@ async function addResources() {
 
 
 function getScreenOrientation() {
+
   if (window.screen.orientation) {
     // Use Screen Orientation API if available
     const type = window.screen.orientation.type;
-    return type.includes('portrait') ? 'portrait' : 'landscape';
+    window.orient = type.includes('portrait') ? 'portrait' : 'landscape';
   } else {
     // Fallback to window dimensions
-    return window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    window.orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
   }
+
+  window.containerSize = window.screen.width <= 420 ? 's' : window.orient === 'landscape' || window.screen.width <= 920 ? 'm' : 'l';
+  window.containerWidth = window.containerSize === 's' ? '95%' : window.containerSize === 'm' ? '70%' : '50%';
+  //window.containerWidth = window.orient === 'landscape' || window.screen.width >= 420 ? '40%' : '95%';
+
+  console.log('orientation', window.orient);
+  return window.orient;
 }
 
 
