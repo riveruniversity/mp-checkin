@@ -14,13 +14,15 @@
 // ==/UserScript==
 
 
-
+console.log('🖨️  loading print module ...');
 
 /* eslint-disable no-undef */
+const domParser = new DOMParser();
+
+
 
 // Store the original XMLHttpRequest constructor
 const OriginalXHR = window.XMLHttpRequest;
-const domParser = new DOMParser();
 
 // Override XMLHttpRequest
 window.XMLHttpRequest = function () {
