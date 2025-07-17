@@ -93,21 +93,35 @@ function addVideoCanvas() {
   div.style.flexDirection = 'column';
   div.style.margin = '0 auto';
 
-  const button = document.createElement('button');
-  button.id = 'flip-cam';
-  button.innerText = 'Flip Camera';
-  button.style.padding = '10px';
-  button.style.marginTop = '10px';
-  button.style.border = '0';
-  button.addEventListener('click', () => flipCamera());
-
   // Proper nesting: video goes in videoContainer, both go in main wrapper
   videoContainer.appendChild(window.video);
   div.appendChild(videoContainer);
-  div.appendChild(button);
 
   const panel = document.querySelector('.search-input-panel');
   panel.parentElement.appendChild(div);
+
+
+  addFlipButton();
+}
+
+
+function addFlipButton() {
+
+  const buttonSet = document.querySelector('.row.button-set');
+  const firstButton = buttonSet.firstElementChild;
+
+
+  const buttonContainer = firstButton.cloneNode(true);
+  const flipButton = buttonContainer.firstElementChild;
+  flipButton.id = 'flip-cam';
+  flipButton.title = 'Flip Camera';
+  flipButton.style.flex = '1';
+  flipButton.firstElementChild.className = 'left fas fa-camera';
+  flipButton.lastChild.textContent = 'Flip Cam';
+  flipButton.removeAttribute("ng-click");
+  flipButton.addEventListener('click', () => flipCamera());
+
+  buttonSet.appendChild(buttonContainer);
 }
 
 
