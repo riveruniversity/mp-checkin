@@ -112,13 +112,15 @@ function addStyle() {
 
 
   const viewAreaFooter = document.querySelector('.viewAreaFooter');
+  viewAreaFooter.style.display = 'flex';
+  viewAreaFooter.style.justifyContent = 'center';
+
   const footer = viewAreaFooter.firstElementChild;
-  footer.style.width = window.containerWidth;
-  footer.style.maxWidth = '1360px';
+  footer.style.width = window.containerSize === 's' ? '100%' : window.containerWidth;
   footer.style.display = 'flex';
   footer.style.justifyContent = 'space-evenly';
   footer.style.gap = '3px';
-  [...footer.children].forEach(child => (child.style.width = (100 / footer.children.length + '%')));
+  [...footer.children].forEach(child => (child.style.flex = '1'));
 
 }
 
