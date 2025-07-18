@@ -108,14 +108,16 @@ function addVideoCanvas() {
 function addFlipButton() {
 
   const buttonSet = document.querySelector('.row.button-set');
-  const firstButton = buttonSet.firstElementChild;
+  const firstButton = buttonSet.firstElementChild.nextElementSibling;
 
 
   const buttonContainer = firstButton.cloneNode(true);
+  buttonContainer.style.flex = '1';
+
   const flipButton = buttonContainer.firstElementChild;
   flipButton.id = 'flip-cam';
   flipButton.title = 'Flip Camera';
-  flipButton.style.flex = '1';
+  flipButton.style.background = '#449ba6';
   flipButton.firstElementChild.className = 'left fas fa-camera';
   flipButton.lastChild.textContent = 'Flip Cam';
   flipButton.removeAttribute("ng-click");
