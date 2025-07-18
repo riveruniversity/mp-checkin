@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name			    Checkin Scan
 // @namespace	  	revival.com
-// @version		  	1.2.8
+// @version		  	1.2.9
 // @description		MP Checkin Suite extension
 // @author			  River Church
 // @match		    	https://mp.revival.com/checkin*
@@ -67,6 +67,8 @@ function waitingForPageToLoad() {
 
 
 function addVideoCanvas() {
+  if (document.querySelector('#video-container')) return;
+
   window.video = document.createElement('video');
   window.video.id = 'qr-video';
   window.video.controls = false;
