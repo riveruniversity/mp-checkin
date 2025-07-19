@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name			    Checkin Scan
 // @namespace	  	revival.com
-// @version		  	1.2.9
+// @version		  	1.2.10
 // @description		MP Checkin Suite extension
 // @author			  River Church
 // @match		    	https://mp.revival.com/checkin*
@@ -61,6 +61,7 @@ function waitingForPageToLoad() {
 
 
   addVideoCanvas();
+  addFlipButton();
   addObserver();
   startCam();
 }
@@ -81,29 +82,17 @@ function addVideoCanvas() {
   // Square video container (only contains the video)
   const videoContainer = document.createElement('div');
   videoContainer.id = 'video-container';
-  videoContainer.style.width = '100%';
+  videoContainer.style.width = (window.screen.height * 0.6) + 'px';
+  videoContainer.style.maxWidth = (window.screen.height * 0.6) + 'px';
   videoContainer.style.aspectRatio = '1 / 1';
   videoContainer.style.overflow = 'hidden';
   videoContainer.style.position = 'relative';
+  videoContainer.style.margin = '0 auto';
 
-  // Main wrapper div (contains video container + button)
-  const div = document.createElement('div');
-  div.id = 'qr-wrapper';
-  div.style.width = window.containerWidth;
-  div.style.maxWidth = (window.screen.height * 0.6) + 'px';
-  div.style.display = 'flex';
-  div.style.flexDirection = 'column';
-  div.style.margin = '0 auto';
-
-  // Proper nesting: video goes in videoContainer, both go in main wrapper
   videoContainer.appendChild(window.video);
-  div.appendChild(videoContainer);
 
   const panel = document.querySelector('.search-input-panel');
-  panel.parentElement.appendChild(div);
-
-
-  addFlipButton();
+  panel.parentElement.appendChild(videoContainer);
 }
 
 
@@ -142,7 +131,7 @@ function startCam() {
 
   window.qrScanner.start()
     .then(() => QrScanner.listCameras(true))
-    .then(list => localStorage.setItem('cameras', JSON.stringify(list)))
+    .then(list => localStorage.setItem('cameras', JSON.stringify(list.slice(0, 2))))
     .then(() => updateCurrentCamInfo())
     .catch(err => console.warn('Failed to start scanner or list cameras:', err));
 }
