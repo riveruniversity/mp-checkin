@@ -20,7 +20,7 @@ console.log('🖨️  loading print module ...');
 
 /* eslint-disable no-undef */
 
-initiatePrinters();
+//initiatePrinters();
 
 // Store the original XMLHttpRequest constructor
 const OriginalXHR = window.XMLHttpRequest;
@@ -143,7 +143,8 @@ async function interceptPrint(body, xhrInstance) {
     console.log('Redirecting print job to Print Server...');
 
     // Send to your Print Server
-    const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
+    const response = await fetch('https://rmimssql01.rmihq.local:8443/api/print/submit', {
+      //const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
       //const response = await fetch('http://localhost:8080/api/print/submit', {
       method: "POST",
       headers: {
@@ -251,9 +252,12 @@ function extractKeyValue(htmlString) {
   return result;
 }
 
-function initiatePrinters() {
-  fetch('https://10.0.1.16:8443/api/print/printers', { method: "POST" })
-    .then(res => res.json()).then(res => console.log(res))
+async function initiatePrinters() {
+  fetch('https://rmimssql01.rmihq.local:8443/api/print/printers')
+    .then(res => res.json()).then(({ success, data }) => {
+      console.log({ success }, data);
+      success && (window.printers = data.printers);
+    })
     .catch(err => console.error(err));
 }
 
