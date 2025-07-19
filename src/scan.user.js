@@ -43,7 +43,7 @@ function handleMutations(mutations) {
   }
 }
 
-function waitingForPageToLoad() {
+async function waitingForPageToLoad() {
   const main = document.querySelector('.viewAreaMain');
 
   if (!main) {
@@ -52,13 +52,17 @@ function waitingForPageToLoad() {
     return;
   }
 
-  //* Page Loaded *//
-
   // Not Search Page
   if (!document.querySelector('.searchInput')) return;
 
   console.log('search page loaded');
 
+  // Wait for QrScanner to be available
+  if (typeof QrScanner === 'undefined') {
+    console.log('⏳ waiting for QrScanner library...');
+    setTimeout(waitingForPageToLoad, 100);
+    return;
+  }
 
   addVideoCanvas();
   addFlipButton();
@@ -120,20 +124,31 @@ function addFlipButton() {
 
 
 function startCam() {
-  const deviceId = localStorage.getItem('currentCamId') || 'environment';
+  const savedCamId = localStorage.getItem('currentCamId');
+
+  // Use 'environment' or 'user' as string literals, or a valid device ID
+  let preferredCamera = 'environment'; // default
+
+  if (savedCamId && savedCamId !== 'environment' && savedCamId !== 'user') {
+    // Only use saved ID if it's a real device ID, not a string literal
+    preferredCamera = savedCamId;
+  }
 
   window.qrScanner = new QrScanner(window.video, handleScanResult, {
     returnDetailedScanResult: true,
     highlightScanRegion: true,
     highlightCodeOutline: true,
-    preferredCamera: deviceId,
+    preferredCamera: preferredCamera,
   });
 
   window.qrScanner.start()
     .then(() => QrScanner.listCameras(true))
-    .then(list => localStorage.setItem('cameras', JSON.stringify(list.slice(0, 2))))
-    .then(() => updateCurrentCamInfo())
-    .catch(err => console.warn('Failed to start scanner or list cameras:', err));
+    .then(cameras => {
+      console.log('Available cameras:', cameras);
+      localStorage.setItem('cameras', JSON.stringify(cameras.slice(0, 2)));
+      updateCurrentCamInfo();
+    })
+    .catch(err => console.error('Failed to start scanner or list cameras:', err));
 }
 
 
@@ -160,20 +175,31 @@ function updateCurrentCamInfo() {
 
 function flipCamera() {
   const cameraList = JSON.parse(localStorage.getItem('cameras')) || [];
-  const currentCamId = localStorage.getItem('currentCamId');
-  // const currentCamIndex = localStorage.getItem('currentCamIndex');
 
   if (cameraList.length < 2) {
     return console.warn('No cameras to flip');
   }
 
-  const currentCamIndex = cameraList.findIndex(cam => cam.id == currentCamId);
-  const nextCamIndex = cameraList[currentCamIndex + 1] ? currentCamIndex + 1 : 0;
+  const currentCamId = localStorage.getItem('currentCamId');
+
+  // Find current camera index more reliably
+  let currentCamIndex = cameraList.findIndex(cam =>
+    cam.id === currentCamId || cam.deviceId === currentCamId
+  );
+
+  // If not found, start from beginning
+  if (currentCamIndex === -1) currentCamIndex = 0;
+
+  const nextCamIndex = (currentCamIndex + 1) % cameraList.length;
   const nextCam = cameraList[nextCamIndex];
 
-  window.qrScanner.setCamera(nextCam.id);
-  localStorage.setItem('currentCamIndex', nextCamIndex);
-  localStorage.setItem('currentCamId', nextCam.id);
+  window.qrScanner.setCamera(nextCam.id)
+    .then(() => {
+      localStorage.setItem('currentCamIndex', nextCamIndex);
+      localStorage.setItem('currentCamId', nextCam.id);
+      console.log('Switched to camera:', nextCam);
+    })
+    .catch(err => console.error('Failed to switch camera:', err));
 }
 
 function addObserver() {
