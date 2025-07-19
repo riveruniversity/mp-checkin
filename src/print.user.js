@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.0.1
+// @version				1.0.3
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -143,7 +143,7 @@ async function interceptPrint(body, xhrInstance) {
     console.log('Redirecting print job to Print Server...');
 
     // Send to your Print Server
-    const response = await fetch('https://rmimssql01.rmihq.local:8443/api/print/submit', {
+    const response = await fetch('https://mp.revival.com:8443/api/print/submit', {
       //const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
       //const response = await fetch('http://localhost:8080/api/print/submit', {
       method: "POST",
@@ -253,7 +253,7 @@ function extractKeyValue(htmlString) {
 }
 
 async function initiatePrinters() {
-  fetch('https://rmimssql01.rmihq.local:8443/api/print/printers')
+  fetch('https://mp.revival.com:8443/api/print/printers')
     .then(res => res.json()).then(({ success, data }) => {
       console.log({ success }, data);
       success && (window.printers = data.printers);
