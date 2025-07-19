@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name			    Checkin Scan
 // @namespace	  	revival.com
-// @version		  	1.2.10
+// @version		  	1.2.11
 // @description		MP Checkin Suite extension
 // @author			  River Church
 // @match		    	https://mp.revival.com/checkin*
@@ -60,7 +60,7 @@ async function waitingForPageToLoad() {
   // Wait for QrScanner to be available
   if (typeof QrScanner === 'undefined') {
     console.log('⏳ waiting for QrScanner library...');
-    setTimeout(waitingForPageToLoad, 100);
+    window.requestAnimationFrame(waitingForPageToLoad);
     return;
   }
 
@@ -102,6 +102,8 @@ function addVideoCanvas() {
 
 function addFlipButton() {
 
+  if (document.querySelector('#flip-cam')) return;
+
   const buttonSet = document.querySelector('.row.button-set');
   const firstButton = buttonSet.firstElementChild.nextElementSibling;
 
@@ -124,6 +126,12 @@ function addFlipButton() {
 
 
 function startCam() {
+
+  // Stop existing scanner if running
+  if (window.qrScanner) {
+    return;
+  }
+
   const savedCamId = localStorage.getItem('currentCamId');
 
   // Use 'environment' or 'user' as string literals, or a valid device ID
