@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name			    Checkin Scan
 // @namespace	  	revival.com
-// @version		  	1.2.11
+// @version		  	1.2.12
 // @description		MP Checkin Suite extension
 // @author			  River Church
 // @match		    	https://mp.revival.com/checkin*
@@ -90,7 +90,7 @@ function addVideoCanvas() {
 
   // Square video container
   const containerHeight = window.orient === 'landscape' ? window.screen.height : window.screen.width;
-  const multiFactor = window.containerSize === 's' ? 0.9 : 0.6;
+  const multiFactor = window.containerSize === 's' ? 0.9 : 0.4;
   const videoContainer = document.createElement('div');
   videoContainer.id = 'video-container';
   videoContainer.style.width = (containerHeight * multiFactor) + 'px';
