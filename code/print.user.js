@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.0.6
+// @version				1.2.13
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -133,7 +133,7 @@ function generateLabelData(base64Label, requestKiosk, index) {
   const participant = window.participants.find(p => p.ParticipantId === Number(participantId));
 
   // Identify Group Label by checking if Group ID is in our expected group list // and label has that group active
-  const mpGroup = window.mpGroups.filter(g => !!g.ageGroup).find(group => participant?.Events.some(({ GroupId }) => GroupId == group.id)); //&& groupId?.includes(String(group.id)
+  let mpGroup = window.mpGroups.filter(g => !!g.ageGroup).find(group => participant?.Events.some(({ GroupId }) => GroupId == group.id)); //&& groupId?.includes(String(group.id)
   const minorWaiver = groupId.includes('522');
   // Assign kiosk printer by age group
   const kiosk = window.kiosks.find(kiosk => kiosk.ageGroup == mpGroup?.name && (kiosk.group === requestKiosk?.group || (mpGroup?.name == 'Bears' && kiosk.section === requestKiosk.section)));
@@ -141,7 +141,7 @@ function generateLabelData(base64Label, requestKiosk, index) {
   if (!isWristband) return { print: !!mpGroup && !minorWaiver, index };
 
   // for validation on print server
-  mpGroup?.ageGroup = ''; 
+  if(mpGroup) mpGroup = undefined;
   
   // Modify the HTML
   bodyElement.style.padding = '3px';
@@ -170,7 +170,7 @@ function generateLabelData(base64Label, requestKiosk, index) {
     name: participant.DisplayName,
     margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
     copies: 1,
-    mpGroup,
+    // mpGroup,
     ...labelSize,
   };
 }
