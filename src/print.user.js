@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.0.3
+// @version				1.0.4
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
 // @icon					https://mp.revival.com/checkin/content/images/app-logo.png
 // @updateURL			https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/print.user.js
 // @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/print.user.js
-// @inject-into 	page
 
 // @grant 				none
 // ==/UserScript==
@@ -702,7 +701,7 @@ window.kiosks = [
     "section": "D",
     "position": 5,
     "group": "DR",
-    "printer": "RegZD45",
+    "printer": "RegZD21",
     "ageGroup": "Adults",
     "media": "Wristband"
   },
@@ -711,7 +710,7 @@ window.kiosks = [
     "section": "D",
     "position": 6,
     "group": "DR",
-    "printer": "RegZD21",
+    "printer": "RegZD45",
     "ageGroup": "Kids",
     "media": "Wristband"
   },
