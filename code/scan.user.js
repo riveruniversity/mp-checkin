@@ -6,9 +6,9 @@
 // @author			  River Church
 // @match		    	https://mp.revival.com/checkin*
 // @icon		    	https://mp.revival.com/checkin/content/images/app-logo.png
-// @updateURL	  	https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/scan.user.js
-// @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/scan.user.js
-// @require 		  https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/style.lib.js
+// @updateURL	  	https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/code/scan.user.js
+// @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/code/scan.user.js
+// @require 		  https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/lib/style.lib.js
 // @inject-into 	page
 // @grant 				none
 // ==/UserScript==
