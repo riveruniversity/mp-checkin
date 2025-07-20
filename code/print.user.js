@@ -55,17 +55,17 @@ window.XMLHttpRequest = function () {
     }
     else if (this._method === 'POST' && this._url.match(/api\/printService\/Print$/)) {
       // Intercept the print request and handle it asynchronously
-      var { wristbands, onlyLabels } = interceptPrint(jsonBody, this);
+      var { wristbands, onlyLabels } = interceptPrint(jsonBody);
 
-      if (onlyLabels.length && !wristbands.length) {
+      if (onlyLabels.labels.length && !wristbands.length) {
         return originalSend.apply(this, arguments);
       }
-      else if (wristbands.length && !onlyLabels.length) {
-        printWristbands(wristbands);
+      else if (wristbands.length && !onlyLabels.labels.length) {
+        printWristbands(wristbands, this, true);
         return; // Don't send the original request
       }
-      else if (wristbands.length && onlyLabels.length) {
-        printWristbands(wristbands);
+      else if (wristbands.length && onlyLabels.labels.length) {
+        printWristbands(wristbands, this, false);
         arguments[0] = JSON.stringify(onlyLabels);
         return originalSend.apply(this, arguments);
       }
@@ -78,43 +78,7 @@ window.XMLHttpRequest = function () {
 };
 
 
-async function printWristbands(params) {
-  try {
-    console.log('Redirecting print job to Print Server...');
-    // Send to your Print Server
-    const response = await fetch('https://mp.revival.com:8443/api/print/submit', {
-      //const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
-      //const response = await fetch('http://localhost:8080/api/print/submit', {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "labels": wristbands,
-        "metadata": {
-          "priority": "high",
-          //"paperSize": "A4",
-
-        }
-      })
-    });
-
-    const printServerResponse = await response.json();
-    console.log('✅ Print Server Response:', printServerResponse);
-
-    // Forward the Print Server response to the original XHR
-    forwardResponse(xhrInstance, response.status, response.statusText, printServerResponse);
-
-  } catch (error) {
-    console.error('❌ Print interception failed:', error);
-
-    // Send error response back to original XHR
-    forwardErrorResponse(xhrInstance, error);
-  }
-}
-
-
-async function interceptPrint(body, xhrInstance) {
+function interceptPrint(body) {
 
   const { printServiceMachineName, printerName, configuration, labels } = body;
   const kiosk = window.kiosks.find(k => k.printer === printerName);
@@ -160,21 +124,23 @@ function generateLabelData(base64Label, requestKiosk, index) {
   const bodyElement = htmlDoc.querySelector("#labelBody");
   const htmlForm = bodyElement.querySelector('form.label-content');
   const isWristband = bodyElement.querySelector('input#labelType')?.value === 'Wristband';
+  const participantId = bodyElement.querySelector('input#participantId')?.value;
 
   // Find mp group
   const { groupId, labelName, summary, type } = extractKeyValue(htmlString);
 
   // Retrieved generating labels
-  const participant = window.participants[index];
+  const participant = window.participants.find(p => p.ParticipantId === Number(participantId));
 
   // Identify Group Label by checking if Group ID is in our expected group list // and label has that group active
-  const mpGroup = window.mpGroups.filter(g => !!g.ageGroup).find(group => participant.Events.some(({ GroupId }) => GroupId == group.id)); //&& groupId?.includes(String(group.id)
+  const mpGroup = window.mpGroups.filter(g => !!g.ageGroup).find(group => participant?.Events.some(({ GroupId }) => GroupId == group.id)); //&& groupId?.includes(String(group.id)
+  const minorWaiver = groupId.includes('522');
   // Assign kiosk printer by age group
   const kiosk = window.kiosks.find(kiosk => kiosk.ageGroup == mpGroup?.name && (kiosk.group === requestKiosk?.group || (mpGroup?.name == 'Bears' && kiosk.section === requestKiosk.section)));
 
-  if (!isWristband) return { print: false, i: index };
+  if (!isWristband) return { print: !!mpGroup && !minorWaiver, index };
 
-
+  delete mpGroup?.ageGroup; 
   // Modify the HTML
   bodyElement.style.padding = '3px';
   //bodyElement.style.paddingLeft = '5px';
@@ -207,6 +173,40 @@ function generateLabelData(base64Label, requestKiosk, index) {
   };
 }
 
+async function printWristbands(wristbands, xhrInstance, forward = false) {
+  try {
+    console.log('Redirecting print job to Print Server...');
+    // Send to your Print Server
+    const response = await fetch('https://mp.revival.com:8443/api/print/submit', {
+      //const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
+      //const response = await fetch('http://localhost:8080/api/print/submit', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "labels": wristbands,
+        "metadata": {
+          "priority": "high",
+          //"paperSize": "A4",
+
+        }
+      })
+    });
+
+    const printServerResponse = await response.json();
+    console.log('✅ Print Server Response:', printServerResponse);
+
+    // Forward the Print Server response to the original XHR
+    forward && forwardResponse(xhrInstance, response.status, response.statusText, printServerResponse);
+
+  } catch (error) {
+    console.error('❌ Print interception failed:', error);
+
+    // Send error response back to original XHR
+    forward && forwardErrorResponse(xhrInstance, error);
+  }
+}
 
 
 function forwardResponse(xhrInstance, status, statusText, responseData) {
