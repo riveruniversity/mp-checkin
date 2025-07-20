@@ -8,7 +8,7 @@
 // @icon		    	https://mp.revival.com/checkin/content/images/app-logo.png
 // @updateURL	  	https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/code/scan.user.js
 // @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/code/scan.user.js
-// @require 		  https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/lib/style.lib.js
+// @require 		  https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/lib/style.js
 // @inject-into 	page
 // @grant 				none
 // ==/UserScript==
