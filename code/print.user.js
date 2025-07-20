@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.0.4
+// @version				1.0.5
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -9,7 +9,7 @@
 // @updateURL			https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/code/print.user.js
 // @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/code/print.user.js
 // @require 		  https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/lib/data.js
-
+// @inject-into 	page
 // @grant 				none
 // ==/UserScript==
 
@@ -55,8 +55,20 @@ window.XMLHttpRequest = function () {
     }
     else if (this._method === 'POST' && this._url.match(/api\/printService\/Print$/)) {
       // Intercept the print request and handle it asynchronously
-      interceptPrint(jsonBody, this);
-      return; // Don't send the original request
+      var { wristbands, onlyLabels } = interceptPrint(jsonBody, this);
+
+      if (onlyLabels.length && !wristbands.length) {
+        return originalSend.apply(this, arguments);
+      }
+      else if (wristbands.length && !onlyLabels.length) {
+        printWristbands(wristbands);
+        return; // Don't send the original request
+      }
+      else if (wristbands.length && onlyLabels.length) {
+        printWristbands(wristbands);
+        arguments[0] = JSON.stringify(onlyLabels);
+        return originalSend.apply(this, arguments);
+      }
     }
 
     return originalSend.apply(this, arguments);
@@ -64,6 +76,60 @@ window.XMLHttpRequest = function () {
 
   return xhr;
 };
+
+
+async function printWristbands(params) {
+  try {
+    console.log('Redirecting print job to Print Server...');
+    // Send to your Print Server
+    const response = await fetch('https://mp.revival.com:8443/api/print/submit', {
+      //const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
+      //const response = await fetch('http://localhost:8080/api/print/submit', {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "labels": wristbands,
+        "metadata": {
+          "priority": "high",
+          //"paperSize": "A4",
+
+        }
+      })
+    });
+
+    const printServerResponse = await response.json();
+    console.log('✅ Print Server Response:', printServerResponse);
+
+    // Forward the Print Server response to the original XHR
+    forwardResponse(xhrInstance, response.status, response.statusText, printServerResponse);
+
+  } catch (error) {
+    console.error('❌ Print interception failed:', error);
+
+    // Send error response back to original XHR
+    forwardErrorResponse(xhrInstance, error);
+  }
+}
+
+
+async function interceptPrint(body, xhrInstance) {
+
+  const { printServiceMachineName, printerName, configuration, labels } = body;
+  const kiosk = window.kiosks.find(k => k.printer === printerName);
+  const mappedLabels = labels.map((label, i) => generateLabelData(label.LabelData, kiosk, i));
+
+  const wristbands = mappedLabels.filter(label => !!label.htmlContent);
+  const onlyLabels = {
+    printServiceMachineName,
+    printerName,
+    configuration,
+    labels: labels.reduce((acc, label, i) => mappedLabels.some(l => l.index === i) ? [...acc, label] : acc, [])
+  };
+
+  return { wristbands, onlyLabels };
+}
 
 /*
 {
@@ -86,24 +152,28 @@ window.XMLHttpRequest = function () {
 */
 
 
-function generateLabelData(base64Label, requestKiosk, i) {
+function generateLabelData(base64Label, requestKiosk, index) {
 
-  // Parse payload data and decode Base64 to HTML string
+  // Parse payload data, decode Base64 to HTML string, and parse HTML DOM
   const htmlString = atob(base64Label);
-
-  // Find mp group
-  const { groupId, labelName, summary, type } = extractKeyValue(htmlString);
-  const participant = window.participants[i];
-  // Identify Group Label by checking if Group ID is in our expexted group list and lable has that group active
-  const mpGroup = window.mpGroups.find(group => participant.Events.some(({ GroupId }) => GroupId == group.id) && groupId?.includes(String(group.id)));
-
-  // Assign kiosk printer by age group
-  const kiosk = window.kiosks.find(k => k.group === requestKiosk?.group && (k.ageGroup == mpGroup?.name || k.ageGroup == mpGroup?.name?.replace('Bears', 'Kids')));
-
-  // Parse HTML
   const htmlDoc = domParser.parseFromString(htmlString, "text/html");
   const bodyElement = htmlDoc.querySelector("#labelBody");
   const htmlForm = bodyElement.querySelector('form.label-content');
+  const isWristband = bodyElement.querySelector('input#labelType')?.value === 'Wristband';
+
+  // Find mp group
+  const { groupId, labelName, summary, type } = extractKeyValue(htmlString);
+
+  // Retrieved generating labels
+  const participant = window.participants[index];
+
+  // Identify Group Label by checking if Group ID is in our expected group list // and label has that group active
+  const mpGroup = window.mpGroups.filter(g => !!g.ageGroup).find(group => participant.Events.some(({ GroupId }) => GroupId == group.id)); //&& groupId?.includes(String(group.id)
+  // Assign kiosk printer by age group
+  const kiosk = window.kiosks.find(kiosk => kiosk.ageGroup == mpGroup?.name && (kiosk.group === requestKiosk?.group || (mpGroup?.name == 'Bears' && kiosk.section === requestKiosk.section)));
+
+  if (!isWristband) return { print: false, i: index };
+
 
   // Modify the HTML
   bodyElement.style.padding = '3px';
@@ -117,14 +187,15 @@ function generateLabelData(base64Label, requestKiosk, i) {
   const modifiedHtml = serializer.serializeToString(htmlDoc);
 
   // Encode modified HTML to Base64
-  const modifiedBase64 = btoa(modifiedHtml);
+  base64Label = btoa(modifiedHtml);
+
 
   const labelSize = kiosk.media === 'Wristband' ?
     { width: '10in', height: '1in', orientation: 'landscape' } :
     { width: '3in', height: '2in', orientation: 'landscape' };
 
   return {
-    htmlContent: modifiedBase64,
+    htmlContent: base64Label,
     printerName: kiosk?.printer,
     printMedia: kiosk?.media,
     userId: participant.ContactId,
@@ -136,45 +207,7 @@ function generateLabelData(base64Label, requestKiosk, i) {
   };
 }
 
-async function interceptPrint(body, xhrInstance) {
-  try {
-    const { printServiceMachineName, printerName, configuration, labels } = body;
-    const kiosk = window.kiosks.find(k => k.printer === printerName);
-    const mappedLabels = labels.map((label, i) => generateLabelData(label.LabelData, kiosk, i));
 
-    console.log('Redirecting print job to Print Server...');
-
-    // Send to your Print Server
-    const response = await fetch('https://mp.revival.com:8443/api/print/submit', {
-      //const response = await fetch('https://10.0.1.16:8443/api/print/submit', {
-      //const response = await fetch('http://localhost:8080/api/print/submit', {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "labels": mappedLabels,
-        "metadata": {
-          "priority": "high",
-          //"paperSize": "A4",
-
-        }
-      })
-    });
-
-    const printServerResponse = await response.json();
-    console.log('✅ Print Server Response:', printServerResponse);
-
-    // Forward the Print Server response to the original XHR
-    forwardResponse(xhrInstance, response.status, response.statusText, printServerResponse);
-
-  } catch (error) {
-    console.error('❌ Print interception failed:', error);
-
-    // Send error response back to original XHR
-    forwardErrorResponse(xhrInstance, error);
-  }
-}
 
 function forwardResponse(xhrInstance, status, statusText, responseData) {
   // Set XMLHttpRequest properties to match the Print Server response
