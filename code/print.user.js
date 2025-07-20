@@ -140,7 +140,6 @@ function generateLabelData(base64Label, requestKiosk, index) {
 
   if (!isWristband) return { print: !!mpGroup && !minorWaiver, index };
 
-  delete mpGroup?.ageGroup; 
   // Modify the HTML
   bodyElement.style.padding = '3px';
   //bodyElement.style.paddingLeft = '5px';
