@@ -292,6 +292,8 @@ async function initiatePrinters() {
     .then(res => res.json()).then(({ success, data }) => {
       console.log({ success }, data);
       success && (window.printers = data.printers);
+      const notFound = window.kiosks.filter(k => !data.printers.some(p => p.name == k.printer));
+      console.log('notFound', notFound)
     })
     .catch(err => console.error(err));
 }
