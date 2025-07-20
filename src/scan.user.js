@@ -8,8 +8,8 @@
 // @icon		    	https://mp.revival.com/checkin/content/images/app-logo.png
 // @updateURL	  	https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/scan.user.js
 // @downloadURL		https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/scan.user.js
+// @require 		  https://raw.githubusercontent.com/riveruniversity/mp-checkin/main/src/style.lib.js
 // @inject-into 	page
-
 // @grant 				none
 // ==/UserScript==
 
@@ -35,11 +35,12 @@ if (/checkin/.test(location.hash)) {
 
 function handleMutations(mutations) {
   if (mutations.find(({ target }) => target.id === 'scrollableResults')) {
-	window.qrScanner.stop();
+    modifyResultList();
+    window.qrScanner.stop();
   }
 
   if (mutations.find((m) => m.target.className == 'viewArea' && m.addedNodes.length > 1)) {
-	waitingForPageToLoad();
+    waitingForPageToLoad();
   }
 }
 
@@ -47,9 +48,9 @@ async function waitingForPageToLoad() {
   const main = document.querySelector('.viewAreaMain');
 
   if (!main) {
-	console.log('⏳ loading page content...');
-	window.requestAnimationFrame(waitingForPageToLoad);
-	return;
+    console.log('⏳ loading page content...');
+    window.requestAnimationFrame(waitingForPageToLoad);
+    return;
   }
 
   // Not Search Page
@@ -59,15 +60,19 @@ async function waitingForPageToLoad() {
 
   // Wait for QrScanner to be available
   if (typeof QrScanner === 'undefined') {
-	console.log('⏳ waiting for QrScanner library...');
-	window.requestAnimationFrame(waitingForPageToLoad);
-	return;
+    console.log('⏳ waiting for QrScanner library...');
+    window.requestAnimationFrame(waitingForPageToLoad);
+    return;
   }
 
   addVideoCanvas();
   addFlipButton();
   addObserver();
   startCam();
+
+  // style.lib
+  addStyle();
+  roundEdges();
 }
 
 
@@ -83,13 +88,13 @@ function addVideoCanvas() {
   window.video.style.objectFit = 'cover';
   window.video.style.objectPosition = 'center';
 
+  // Square video container
   const containerHeight = window.orient === 'landscape' ? window.screen.height : window.screen.width;
-
-  // Square video container (only contains the video)
+  const multiFactor = window.containerSize === 's' ? 0.9 : 0.6;
   const videoContainer = document.createElement('div');
   videoContainer.id = 'video-container';
-  videoContainer.style.width = (containerHeight * 0.6) + 'px';
-  videoContainer.style.maxWidth = (containerHeight * 0.6) + 'px';
+  videoContainer.style.width = (containerHeight * multiFactor) + 'px';
+  videoContainer.style.maxWidth = (containerHeight * multiFactor) + 'px';
   videoContainer.style.aspectRatio = '1 / 1';
   videoContainer.style.overflow = 'hidden';
   videoContainer.style.position = 'relative';
@@ -131,9 +136,9 @@ function startCam() {
 
   // Stop and destroy existing scanner if it exists
   if (window.qrScanner) {
-	window.qrScanner.stop();
-	window.qrScanner.destroy(); // Important: clean up the old instance
-	window.qrScanner = null;
+    window.qrScanner.stop();
+    window.qrScanner.destroy(); // Important: clean up the old instance
+    window.qrScanner = null;
   }
 
   const savedCamId = localStorage.getItem('currentCamId');
@@ -142,25 +147,25 @@ function startCam() {
   let preferredCamera = 'environment'; // default
 
   if (savedCamId && savedCamId !== 'environment' && savedCamId !== 'user') {
-	// Only use saved ID if it's a real device ID, not a string literal
-	preferredCamera = savedCamId;
+    // Only use saved ID if it's a real device ID, not a string literal
+    preferredCamera = savedCamId;
   }
 
   window.qrScanner = new QrScanner(window.video, handleScanResult, {
-	returnDetailedScanResult: true,
-	highlightScanRegion: true,
-	highlightCodeOutline: true,
-	preferredCamera: preferredCamera,
+    returnDetailedScanResult: true,
+    highlightScanRegion: true,
+    highlightCodeOutline: true,
+    preferredCamera: preferredCamera,
   });
 
   window.qrScanner.start()
-	.then(() => QrScanner.listCameras(true))
-	.then(cameras => {
-	console.log('Available cameras:', cameras);
-	localStorage.setItem('cameras', JSON.stringify(cameras.slice(0, 2)));
-	updateCurrentCamInfo();
-  })
-	.catch(err => console.error('Failed to start scanner or list cameras:', err));
+    .then(() => QrScanner.listCameras(true))
+    .then(cameras => {
+      console.log('Available cameras:', cameras);
+      localStorage.setItem('cameras', JSON.stringify(cameras.slice(0, 2)));
+      updateCurrentCamInfo();
+    })
+    .catch(err => console.error('Failed to start scanner or list cameras:', err));
 }
 
 
@@ -169,8 +174,8 @@ function updateCurrentCamInfo() {
 
   const stream = window.qrScanner.$video.srcObject;
   if (!stream) {
-	console.warn('Scanner not started yet');
-	return;
+    console.warn('Scanner not started yet');
+    return;
   }
 
   const [track] = stream.getVideoTracks();
@@ -179,9 +184,9 @@ function updateCurrentCamInfo() {
 
   const idx = cameraList.findIndex(c => c.deviceId === deviceId || c.id === deviceId);
   if (idx !== -1) {
-	localStorage.setItem('currentCamIndex', idx);
+    localStorage.setItem('currentCamIndex', idx);
   } else {
-	console.warn('Active camera not in saved list');
+    console.warn('Active camera not in saved list');
   }
 }
 
@@ -189,15 +194,15 @@ function flipCamera() {
   const cameraList = JSON.parse(localStorage.getItem('cameras')) || [];
 
   if (cameraList.length < 2) {
-	return console.warn('No cameras to flip');
+    return console.warn('No cameras to flip');
   }
 
   const currentCamId = localStorage.getItem('currentCamId');
 
   // Find current camera index more reliably
   let currentCamIndex = cameraList.findIndex(cam =>
-											 cam.id === currentCamId || cam.deviceId === currentCamId
-											);
+    cam.id === currentCamId || cam.deviceId === currentCamId
+  );
 
   // If not found, start from beginning
   if (currentCamIndex === -1) currentCamIndex = 0;
@@ -206,12 +211,12 @@ function flipCamera() {
   const nextCam = cameraList[nextCamIndex];
 
   window.qrScanner.setCamera(nextCam.id)
-	.then(() => {
-	localStorage.setItem('currentCamIndex', nextCamIndex);
-	localStorage.setItem('currentCamId', nextCam.id);
-	console.log('Switched to camera:', nextCam);
-  })
-	.catch(err => console.error('Failed to switch camera:', err));
+    .then(() => {
+      localStorage.setItem('currentCamIndex', nextCamIndex);
+      localStorage.setItem('currentCamId', nextCam.id);
+      console.log('Switched to camera:', nextCam);
+    })
+    .catch(err => console.error('Failed to switch camera:', err));
 }
 
 function addObserver() {
@@ -227,7 +232,7 @@ function addObserver() {
 function handleScanResult(result) {
   // camera reads randomly a blank code
   if (!result.data) {
-	return;
+    return;
   }
 
   console.log(result);
@@ -297,12 +302,12 @@ async function addResources() {
 function getScreenOrientation() {
 
   if (window.screen.orientation) {
-	// Use Screen Orientation API if available
-	const type = window.screen.orientation.type;
-	window.orient = type.includes('portrait') ? 'portrait' : 'landscape';
+    // Use Screen Orientation API if available
+    const type = window.screen.orientation.type;
+    window.orient = type.includes('portrait') ? 'portrait' : 'landscape';
   } else {
-	// Fallback to window dimensions
-	window.orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    // Fallback to window dimensions
+    window.orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
   }
 
   window.containerSize = window.screen.width <= 420 ? 's' : window.orient === 'landscape' || window.screen.width <= 920 ? 'm' : 'l';
