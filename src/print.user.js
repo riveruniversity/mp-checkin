@@ -13,6 +13,8 @@
 // @grant 				none
 // ==/UserScript==
 
+// @inject-into 	page
+
 
 console.log('🖨️  loading print module ...');
 
@@ -20,7 +22,7 @@ console.log('🖨️  loading print module ...');
 
 /* eslint-disable no-undef */
 
-//initiatePrinters();
+// initiatePrinters();
 
 // Store the original XMLHttpRequest constructor
 const OriginalXHR = window.XMLHttpRequest;
@@ -96,7 +98,7 @@ function generateLabelData(base64Label, requestKiosk, i) {
   const mpGroup = window.mpGroups.find(group => participant.Events.some(({ GroupId }) => GroupId == group.id) && groupId?.includes(String(group.id)));
 
   // Assign kiosk printer by age group
-  const kiosk = window.kiosks.find(k => k.ageGroup == mpGroup?.name && k.group === requestKiosk?.group);
+  const kiosk = window.kiosks.find(k => k.group === requestKiosk?.group && (k.ageGroup == mpGroup?.name || k.ageGroup == mpGroup?.name?.replace('Bears', 'Kids')));
 
   // Parse HTML
   const htmlDoc = domParser.parseFromString(htmlString, "text/html");
