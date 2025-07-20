@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.0.5
+// @version				1.0.6
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -140,6 +140,9 @@ function generateLabelData(base64Label, requestKiosk, index) {
 
   if (!isWristband) return { print: !!mpGroup && !minorWaiver, index };
 
+  // for validation on print server
+  mpGroup?.ageGroup = ''; 
+  
   // Modify the HTML
   bodyElement.style.padding = '3px';
   //bodyElement.style.paddingLeft = '5px';
