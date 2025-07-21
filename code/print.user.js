@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.2.16
+// @version				1.2.17
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -22,7 +22,7 @@ console.log('🖨️  loading print module ...');
 
 /* eslint-disable no-undef */
 
-// initiatePrinters();
+initiateKiosks();
 
 // Store the original XMLHttpRequest constructor
 const OriginalXHR = window.XMLHttpRequest;
@@ -157,11 +157,9 @@ function generateLabelData(base64Label, requestKiosk, index) {
   // Encode modified HTML to Base64
   base64Label = btoa(modifiedHtml);
 
-
-  const labelSize = kiosk.media === 'Wristband' ?
-    { width: '10in', height: '1in', orientation: 'portrait', printerSettings: 'rotate=90' } :
-    { width: '3in', height: '2in', orientation: 'landscape' };
-    
+const labelSize = kiosk.media === 'Wristband' ?
+  { width: '10in', height: '1in', orientation: kiosk.orientation, printerSettings: kiosk.printerSettings} :
+  { width: '3in', height: '2in', orientation: kiosk.orientation, printerSettings: kiosk.printerSettings };
 
 
 
@@ -292,7 +290,7 @@ function extractKeyValue(htmlString) {
   return result;
 }
 
-async function initiatePrinters() {
+async function checkMissingPrinters() {
   fetch('https://mp.revival.com:8443/api/print/printers')
     .then(res => res.json()).then(({ success, data }) => {
       console.log({ success }, data);
@@ -304,4 +302,41 @@ async function initiatePrinters() {
 }
 
 
-
+async function initiateKiosks() {
+  const CACHE_KEY = 'mp_kiosks_data';
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  
+  try {
+    // Check localStorage first
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      const isExpired = Date.now() - timestamp > CACHE_DURATION;
+      
+      if (!isExpired) {
+        window.kiosks = data;
+        console.log('🖨️ Loaded kiosks from cache');
+        return;
+      }
+    }
+    
+    // Fetch from API if not cached or expired
+    const response = await fetch('https://mp.revival.com:8443/api/kiosks');
+    const result = await response.json();
+    
+    if (result.success && result.data) {
+      window.kiosks = result.data;
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: result.data,
+        timestamp: Date.now()
+      }));
+      console.log('🖨️ Loaded kiosks from API');
+    } else {
+      console.warn('❌ Failed to load kiosks:', result);
+      window.kiosks = []; // Fallback to empty array
+    }
+  } catch (error) {
+    console.error('❌ Kiosk initialization failed:', error);
+    window.kiosks = []; // Fallback to empty array
+  }
+}
