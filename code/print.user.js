@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.2.17
+// @version				1.2.18
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -324,15 +324,15 @@ async function initiateKiosks() {
     const response = await fetch('https://mp.revival.com:8443/api/kiosks');
     const result = await response.json();
     
-    if (result.success && result.data) {
-      window.kiosks = result.data;
+    if (Array.isArray(result)) {
+      window.kiosks = result;
       localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: result.data,
+        data: result,
         timestamp: Date.now()
       }));
       console.log('🖨️ Loaded kiosks from API');
     } else {
-      console.warn('❌ Failed to load kiosks:', result);
+      console.warn('❌ Expected array from kiosks API, got:', typeof result);
       window.kiosks = []; // Fallback to empty array
     }
   } catch (error) {

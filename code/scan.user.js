@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name			    Checkin Scan
 // @namespace	  	revival.com
-// @version		  	1.2.17
+// @version		  	1.2.18
 // @description		MP Checkin Suite extension
 // @author			  River Church
 // @match		    	https://mp.revival.com/checkin*
