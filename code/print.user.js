@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.2.14
+// @version				1.2.16
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -161,6 +161,9 @@ function generateLabelData(base64Label, requestKiosk, index) {
   const labelSize = kiosk.media === 'Wristband' ?
     { width: '10in', height: '1in', orientation: 'portrait', printerSettings: 'rotate=90' } :
     { width: '3in', height: '2in', orientation: 'landscape' };
+    
+
+
 
   return {
     htmlContent: base64Label,
