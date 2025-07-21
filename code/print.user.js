@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.2.18
+// @version				1.2.19
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -304,7 +304,8 @@ async function checkMissingPrinters() {
 
 async function initiateKiosks() {
   const CACHE_KEY = 'mp_kiosks_data';
-  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  // const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const CACHE_DURATION =  60 * 1000; // 1min
   
   try {
     // Check localStorage first
