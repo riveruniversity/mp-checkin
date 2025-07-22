@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name					Checkin Print
 // @namespace			revival.com
-// @version				1.2.20
+// @version				1.2.21
 // @description		MP Checkin Suite extension
 // @author				River Church
 // @match					https://mp.revival.com/checkin*
@@ -136,7 +136,9 @@ function generateLabelData(base64Label, requestKiosk, index) {
   let mpGroup = window.mpGroups.filter(g => !!g.ageGroup).find(group => participant?.Events.some(({ GroupId }) => GroupId == group.id)); //&& groupId?.includes(String(group.id)
   const minorWaiver = groupId.includes('522');
   // Assign kiosk printer by age group
-  const kiosk = window.kiosks.find(kiosk => kiosk.ageGroup == mpGroup?.name && (kiosk.group === requestKiosk?.group || (mpGroup?.name == 'Bears' && kiosk.section === requestKiosk.section)));
+
+  let kiosk = window.kiosks.find(kiosk => kiosk.ageGroup == mpGroup?.name && (kiosk.group === requestKiosk?.group || (mpGroup?.name == 'Bears' && kiosk.section === requestKiosk.section)));
+  if(requestKiosk.section === 'A' && requestKiosk.position > 6 && mpGroup?.name == 'Bears' ) kiosk = window.kiosks.find(kiosk => kiosk.name == 'AT2')
 
   if (!isWristband) return { print: !!mpGroup && !minorWaiver, index };
 
